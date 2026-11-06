@@ -1,0 +1,6 @@
+data/
+__pycache__/
+*.pyc
+results/classical_models.pkl
+web/data.js
+.DS_Store
