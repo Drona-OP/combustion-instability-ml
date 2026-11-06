@@ -1,4 +1,6 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Combustion Instability Early Warning</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
@@ -160,6 +162,37 @@ tr.rule td:first-child { color: var(--ink-2); }
 code { font-family: var(--f-mono); font-size: 13px; background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
 pre.code { font-family: var(--f-mono); font-size: 12.5px; background: var(--panel-2); border-radius: 8px; padding: 12px; overflow-x: auto; margin: 0; }
 footer { border-top: 1px solid var(--line); padding-block: 18px 30px; color: var(--ink-3); font-size: 12.5px; }
+
+/* overview steps */
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+.step { display: flex; gap: 14px; align-items: flex-start; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; min-width: 0; }
+.step .n { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); font: 700 14px var(--f-mono); }
+.step b { font: 700 17px var(--f-display); font-stretch: 90%; }
+.step p { font-size: 13.5px; color: var(--ink-2); margin: 4px 0 8px; }
+.step .stat { font-size: 12px; color: var(--ink-3); }
+/* simulator */
+.statusbar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-items: center; }
+@media (max-width: 900px) { .statusbar { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.sb { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.bigchip { display: inline-flex; align-items: center; gap: 8px; font: 700 16px var(--f-body); padding: 7px 14px 7px 10px; border-radius: 999px; width: fit-content; }
+.bigchip i { width: 12px; height: 12px; border-radius: 50%; }
+.bigchip.k0 { background: var(--c0-soft); } .bigchip.k0 i { background: var(--c0); }
+.bigchip.k1 { background: var(--c1-soft); } .bigchip.k1 i { background: var(--c1); }
+.bigchip.k2 { background: var(--c2-soft); } .bigchip.k2 i { background: var(--c2); }
+.alarm { display: inline-flex; align-items: center; gap: 10px; font-size: 18px; }
+.lamp { width: 22px; height: 22px; border-radius: 50%; background: var(--panel-2); border: 2px solid var(--line); transition: background .15s, box-shadow .15s; }
+.lamp.on { background: var(--crit); border-color: var(--crit); box-shadow: 0 0 0 5px color-mix(in oklab, var(--crit) 22%, transparent); }
+.bignum { font: 800 30px/1 var(--f-display); font-stretch: 80%; font-variant-numeric: tabular-nums; }
+.presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.presets button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; text-align: left; font-weight: 600; }
+.presets button i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-bottom: 2px; }
+.presets button small { font: 400 11px var(--f-mono); color: var(--ink-3); }
+.presets button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.caption { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; font-size: 13.5px; min-height: 92px; }
+.bignum .sym { font-family: var(--f-mono); font-size: 22px; font-weight: 500; color: var(--ink-3); }
+.caption p { margin-top: 4px; color: var(--ink-2); }
+.physline { font-size: 11.5px; color: var(--ink-3); margin-top: 4px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 
@@ -178,16 +211,24 @@ footer { border-top: 1px solid var(--line); padding-block: 18px 30px; color: var
 <section class="view stack-lg" id="v-overview">
   <div class="hero">
     <div class="stack">
-      <div class="eyebrow">Thermoacoustic instability · 3-class detection · 10 kHz p′ and q′</div>
-      <h1>Flag the instability while it is still intermittent</h1>
-      <p class="lede">A lean premixed flame drifts from steady burning, through short bursts of sound, into a locked limit cycle. We train classifiers on 50 ms windows of chamber pressure and flame light to sound the alarm during the bursts, before the full oscillation forms.</p>
+      <div class="eyebrow">Rocket propulsion term project · thermoacoustic instability</div>
+      <h1>Warn of combustion instability a second before it locks in</h1>
+      <p class="lede">When a lean flame and the chamber's sound waves start feeding each other, pressure swings can wreck an engine. Before that, the chamber hums in short bursts. We taught detectors to spot those bursts from 50 ms of pressure and flame-light data, early enough for a fuel valve to step in.</p>
       <div class="row"><button class="primary" data-go="replay">Watch a held-out run</button><button data-go="simulator">Drive the combustor yourself</button></div>
     </div>
     <div class="scope">
-      <div class="row spread"><span class="mono">p′ (kPa) · <span id="ov-reg-name">Stable</span></span><span class="mono" id="ov-phi">φ = 0.86</span></div>
-      <canvas id="ov-scope" height="190" aria-label="Pressure trace cycling through the three regimes"></canvas>
-      <div class="row" id="ov-regs"></div>
+      <div class="row spread"><span class="mono">Held-out run · chamber pressure p′ (kPa)</span><span class="mono" id="ov-phi">φ = 0.860</span></div>
+      <canvas id="ov-scope" height="200" aria-label="Pressure of a held-out run scrolling past as the mixture is leaned out"></canvas>
+      <canvas id="ov-ribbon" height="14" aria-hidden="true"></canvas>
+      <div class="row spread" style="margin-top:8px"><div class="legend"><span><i class="box" style="background:var(--c0)"></i>Stable</span><span><i class="box" style="background:var(--c1)"></i>Transition</span><span><i class="box" style="background:var(--c2)"></i>Unstable</span></div><span id="ov-state"></span></div>
+      <p class="note" style="margin-top:6px">The last 3 s of a 30 s run that no model saw in training, replayed at 1.5× speed as air is added. The colour is the true regime.</p>
     </div>
+  </div>
+
+  <div class="steps">
+    <div class="step"><span class="n">1</span><div><b>Simulate</b><p>A physics model of the combustor produces pressure and flame-light signals at 10 kHz as the mixture is leaned out.</p><span class="stat mono">15 runs · 44,940 windows</span></div></div>
+    <div class="step"><span class="n">2</span><div><b>Detect</b><p>Every 10 ms, each of 8 detectors reads the last 50 ms and answers Stable, Transition or Unstable.</p><span class="stat mono">RMS rules → SVM, RF → CNN-LSTM</span></div></div>
+    <div class="step"><span class="n">3</span><div><b>Warn</b><p>Three non-stable answers in a row raise the alarm. A fuel valve needs about 40 ms to act on it.</p><span class="stat mono" id="ov-step3"></span></div></div>
   </div>
 
   <div class="tiles" id="ov-tiles"></div>
@@ -195,28 +236,17 @@ footer { border-top: 1px solid var(--line); padding-block: 18px 30px; color: var
   <div class="grid g2">
     <div class="panel stack">
       <h3>Why the flame starts to sing</h3>
-      <p class="sub">Heat-release fluctuations q′ push on the acoustic field p′, the sound wave disturbs the flow u′ at the injector, and the disturbed mixture changes q′ again.</p>
-      <div class="loop"><div><b>q′</b><br><span class="note">unsteady heat release</span></div><div><b>p′</b><br><span class="note">chamber acoustics, 1/4-wave ≈ 210 Hz</span></div><div><b>u′</b><br><span class="note">flow and mixture at the injector</span></div></div>
-      <div class="eq">R = (1/T) ∫ p′(t) q′(t) dt &gt; 0 &nbsp;→&nbsp; flame adds energy to the wave</div>
-      <p class="sub">Measured on our held-out runs (normalised Rayleigh index per 50 ms window, waveguide delay removed):</p>
+      <p class="sub">Heat-release fluctuations q′ push on the sound field p′. The sound wave disturbs the flow u′ at the injector, and the disturbed mixture changes q′ again.</p>
+      <div class="loop"><div><b>q′</b><br><span class="note">unsteady heat release</span></div><div><b>p′</b><br><span class="note">chamber sound, 1/4-wave ≈ 210 Hz</span></div><div><b>u′</b><br><span class="note">flow and mixture at the injector</span></div></div>
+      <div class="eq">R = (1/T) ∫ p′(t) q′(t) dt &gt; 0 &nbsp;→&nbsp; the flame adds energy to the wave</div>
+      <p class="sub">Measured on our held-out runs (Rayleigh index per 50 ms window, sensor delay removed):</p>
       <div class="bars-h stack" id="ov-rayleigh" style="gap:8px"></div>
     </div>
     <div class="panel stack">
       <div class="row spread"><h3>The route to instability, all 15 runs</h3><span class="note mono" id="bif-hover"></span></div>
-      <p class="sub">Every 4th window of every slow sweep: pressure RMS against equivalence ratio, coloured by the true regime. Bursts first appear inside the transition band, then the limit cycle takes over.</p>
+      <p class="sub">Every 4th window of every slow sweep: pressure loudness against equivalence ratio, coloured by the true regime. Bursts first appear inside the transition band, then the limit cycle takes over.</p>
       <canvas id="ov-bif" height="300" aria-label="Pressure RMS versus equivalence ratio"></canvas>
       <div class="legend" id="bif-legend"></div>
-    </div>
-  </div>
-
-  <div class="panel stack">
-    <h3>Detection pipeline</h3>
-    <div class="pipeline">
-      <div><b>Sensors</b><span>Piezo pressure p′ behind a 0.5 ms waveguide, photodiode q′. Both 10 kHz.</span></div>
-      <div><b>50 ms window</b><span>500 samples, about 10 acoustic cycles, new window every 10 ms.</span></div>
-      <div><b>Classifier</b><span>RMS rule, SVM or RF on 5 features, or 1D-CNN and CNN-LSTM on raw waves.</span></div>
-      <div><b>Alarm logic</b><span>Raise after 3 windows in a row (30 ms), clear after 10 calm windows.</span></div>
-      <div><b>Actuator</b><span>Secondary fuel valve needs about 40 ms to respond.</span></div>
     </div>
   </div>
 </section>
@@ -267,58 +297,62 @@ footer { border-top: 1px solid var(--line); padding-block: 18px 30px; color: var
 
 <!-- ============================ SIMULATOR ============================ -->
 <section class="view stack" id="v-simulator" hidden>
-  <div class="stack" style="gap:6px"><div class="eyebrow">Runs in your browser · 10 000 samples per second</div><h2>Drive the combustor</h2>
-  <p class="lede" style="font-size:15px">The reduced-order combustor model runs live in this page, and the Random Forest classifies every 10 ms window it produces. Lean the mixture out and watch the bursts appear before the limit cycle.</p></div>
+  <div class="stack" style="gap:6px"><div class="eyebrow">Runs in your browser · 10,000 samples per second</div><h2>Drive the combustor</h2>
+  <p class="lede" style="font-size:15px">This is the same physics model that generated our dataset, running live. The Random Forest classifies every 10 ms window it produces. Pick a preset or press Auto lean-out and watch the bursts appear before the full oscillation.</p></div>
+
+  <div class="panel statusbar">
+    <div class="sb"><span class="eyebrow">Combustor is really</span><span id="sm-true" class="bigchip k0"><i></i><span>Stable</span></span></div>
+    <div class="sb"><span class="eyebrow">Random Forest says</span><span id="sm-pred" class="bigchip k0"><i></i><span>Stable</span></span></div>
+    <div class="sb"><span class="eyebrow">Alarm</span><span class="alarm"><span id="sm-lamp" class="lamp"></span><b id="sm-alarm-t">Off</b></span></div>
+    <div class="sb"><span class="eyebrow">Equivalence ratio</span><span class="bignum"><span class="sym">φ</span> <span id="sm-phi-v">0.880</span></span></div>
+    <div class="sb"><span class="eyebrow">Net growth rate</span><span class="bignum"><span class="sym">ν</span> <span id="sm-nu">−78 s⁻¹</span></span></div>
+  </div>
+
   <div class="sim-grid">
-    <div class="stack">
-      <div class="panel stack">
-        <div class="eyebrow">Equivalence ratio</div>
-        <div class="big-phi" id="sm-phi-v">0.880</div>
-        <input type="range" id="sm-phi" min="0.55" max="0.90" step="0.0025" value="0.88" aria-label="Equivalence ratio">
-        <div class="row spread note"><span>0.55 lean</span><span>0.90 rich</span></div>
-        <div class="row"><button class="primary" id="sm-ramp">Auto lean-out (20 s)</button><button id="sm-pause">Pause</button><button id="sm-reset">Reset</button></div>
-        <label class="ctl" for="sm-flow"><span>Bulk flow (× reference) <span class="mono" id="sm-flow-v">1.00</span></span><input type="range" id="sm-flow" min="0.9" max="1.1" step="0.01" value="1"></label>
-        <label class="ctl" for="sm-turb"><span>Flame-gain turbulence s<sub>ν</sub> (1/s) <span class="mono" id="sm-turb-v">25</span></span><input type="range" id="sm-turb" min="10" max="40" step="1" value="25"></label>
+    <div class="panel stack">
+      <div class="eyebrow">Operating point</div>
+      <div class="presets" role="group" aria-label="Presets">
+        <button data-phi="0.86" id="pre-stable"><i style="background:var(--c0)"></i>Stable<small>φ 0.86</small></button>
+        <button data-phi="0.72" id="pre-burst"><i style="background:var(--c1)"></i>Bursting<small>φ 0.72</small></button>
+        <button data-phi="0.60" id="pre-unstable"><i style="background:var(--c2)"></i>Unstable<small>φ 0.60</small></button>
       </div>
-      <div class="panel stack" style="gap:8px">
-        <div class="eyebrow">Physics at this operating point</div>
-        <dl class="readout">
-          <dt>Flame phase lag θ</dt><dd id="sm-theta"></dd>
-          <dt>Rayleigh driving β cos θ</dt><dd id="sm-drive"></dd>
-          <dt>Acoustic damping α</dt><dd id="sm-alpha"></dd>
-          <dt>Net growth rate ν</dt><dd id="sm-nu"></dd>
-          <dt>Transition starts at −2 s<sub>ν</sub></dt><dd id="sm-nuT"></dd>
-          <dt>True regime</dt><dd id="sm-true"></dd>
-        </dl>
-        <p class="note">Transition starts when ν rises above −2 s<sub>ν</sub>: turbulent swings in flame gain then push the net growth positive for short moments, which is what makes the bursts.</p>
-      </div>
+      <button class="primary" id="sm-ramp">Auto lean-out: 0.88 → 0.56 in 20 s</button>
+      <label class="ctl" for="sm-phi"><span>Equivalence ratio φ (drag)</span><input type="range" id="sm-phi" min="0.55" max="0.90" step="0.0025" value="0.88"></label>
+      <div class="row spread note" style="margin-top:-8px"><span>0.55 lean</span><span>0.90 rich</span></div>
+      <label class="ctl" for="sm-flow"><span>Bulk flow (× reference) <b class="mono" id="sm-flow-v">1.00</b></span><input type="range" id="sm-flow" min="0.9" max="1.1" step="0.01" value="1"></label>
+      <label class="ctl" for="sm-turb"><span>Flame-gain turbulence s<sub>ν</sub> <b class="mono" id="sm-turb-v">25</b> s⁻¹</span><input type="range" id="sm-turb" min="10" max="40" step="1" value="25"></label>
+      <div class="row"><button id="sm-pause">Pause</button><button id="sm-reset">Reset</button></div>
     </div>
     <div class="stack">
       <div class="panel" style="padding:12px 14px">
-        <div class="row spread"><span class="eyebrow">Oscilloscope · last 0.3 s</span><div class="legend"><span><i style="background:var(--trace)"></i>p′ (kPa)</span><span><i style="background:var(--trace-q)"></i>q′ (a.u.)</span></div></div>
-        <canvas id="sm-scope" height="200"></canvas>
+        <div class="row spread"><span class="eyebrow">Oscilloscope · last 0.3 s</span><div class="legend"><span><i style="background:var(--trace)"></i>p′ pressure (kPa)</span><span><i style="background:var(--trace-q)"></i>q′ flame light (a.u.)</span></div></div>
+        <canvas id="sm-scope" height="230"></canvas>
       </div>
-      <div class="grid g2">
-        <div class="panel stack" style="gap:10px">
-          <div class="row spread"><h3>Random Forest decision</h3><span id="sm-alarm" class="chip alarm-off"><i></i>Alarm off</span></div>
-          <div class="probs stack" style="gap:8px" id="sm-probs"></div>
-          <div class="note" id="sm-forest-note"></div>
-        </div>
-        <div class="panel stack" style="gap:8px">
-          <h3>The five features, this window</h3>
-          <div class="stack" style="gap:8px" id="sm-feats"></div>
-        </div>
+      <div class="panel" style="padding:12px 14px">
+        <div class="row spread"><span class="eyebrow">Stability meter · driving minus damping</span><span class="note">needle = ν · faint dot = ν with turbulence right now</span></div>
+        <canvas id="sm-meter" height="96"></canvas>
+        <div class="physline mono" id="sm-physline"></div>
       </div>
-      <div class="grid g2">
-        <div class="panel" style="padding:12px 14px">
-          <div class="row spread"><span class="eyebrow">Spectrum of p′ · 0–1000 Hz</span><span class="mono note" id="sm-fpk"></span></div>
-          <canvas id="sm-spec" height="150"></canvas>
-        </div>
-        <div class="panel" style="padding:12px 14px">
-          <div class="row spread"><span class="eyebrow">Last 20 s</span><span class="lanes">top: true regime · bottom: RF decision</span></div>
-          <canvas id="sm-hist" height="150"></canvas>
-        </div>
-      </div>
+      <div class="caption"><b>What you're seeing</b><p id="sm-caption"></p></div>
+    </div>
+  </div>
+
+  <div class="grid g3">
+    <div class="panel stack" style="gap:10px">
+      <h3>Random Forest, live</h3>
+      <div class="probs stack" style="gap:8px" id="sm-probs"></div>
+      <div class="stack" style="gap:7px;margin-top:4px" id="sm-feats"></div>
+      <p class="note" id="sm-forest-note"></p>
+    </div>
+    <div class="panel" style="padding:12px 14px">
+      <div class="row spread"><span class="eyebrow">Spectrum of p′ · 0–1000 Hz</span><span class="mono note" id="sm-fpk"></span></div>
+      <canvas id="sm-spec" height="210"></canvas>
+      <p class="note">A single sharp peak near 210 Hz means one tone dominates: the chamber is singing.</p>
+    </div>
+    <div class="panel" style="padding:12px 14px">
+      <div class="row spread"><span class="eyebrow">Last 20 seconds</span><span class="note">older ← → now</span></div>
+      <canvas id="sm-hist" height="210"></canvas>
+      <div class="legend"><span><i class="box" style="background:var(--c0)"></i>Stable</span><span><i class="box" style="background:var(--c1)"></i>Transition</span><span><i class="box" style="background:var(--c2)"></i>Unstable</span><span><i class="box" style="background:var(--crit)"></i>Alarm</span></div>
     </div>
   </div>
 </section>
@@ -554,7 +588,7 @@ python export_web.py && python build_web.py   # this page</pre>
         const qc = xr * cth + xi * sth; // Re{a e^{i(Phi - theta)}}
         q[off + k] = qc + P.flame_noise * this.flame * s2 + 0.02 * g();
       }
-      return { nu, theta: th * 180 / Math.PI, f, amp: Math.hypot(this.zr, this.zi) };
+      return { nu, eta: this.eta, theta: th * 180 / Math.PI, f, amp: Math.hypot(this.zr, this.zi) };
     }
   }
 
@@ -661,7 +695,8 @@ const BEST = MODELS.some(m => m.key === "lstm_pq") ? "lstm_pq" : "rf_smooth";
 
 // ---------- canvas helpers ----------
 function setup(cv) {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth, h = +cv.getAttribute("height");
+  if (!cv.dataset.h) cv.dataset.h = cv.getAttribute("height");  // logical CSS height, kept separate from the pixel buffer size
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth, h = +cv.dataset.h;
   if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + "px"; }
   const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
   return { g, w, h };
@@ -692,6 +727,7 @@ function route() {
   for (const n of VIEWS) $("#v-" + n).hidden = n !== v;
   $$("nav.tabs a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v ? "page" : "false"));
   if (v !== "simulator") Sim.stop(); else Sim.start();
+  if (v !== "overview") OV.stop(); else OV.start();
   if (v !== "replay") Replay.pause();
   requestAnimationFrame(() => (RENDER[v] || (() => {}))());
 }
@@ -704,43 +740,55 @@ const rows = (op, scn) => D.summary[op][scn];
 const rowOf = (op, scn, key) => rows(op, scn).find(r => r.model === NAME[key]);
 
 // =============================== OVERVIEW ===============================
-const OV = { regs: [], i: 0, t0: 0 };
-(function prepOverview() {
-  // three 2-s excerpts from held-out slow run, one per regime
-  const R = D.replay.find(r => r.kind === "ramp");
-  const p = b64(R.p, Int16Array), y = b64(R.y, Uint8Array), phi = b64(R.phi, Int16Array), rms = b64(R.rms, Int16Array);
-  const pick = (cls, want) => { let best = -1, bd = 1e9; for (let i = 0; i < y.length - 250; i++) if (y[i] === cls) { const d = Math.abs(phi[i] / 1e4 - want); if (d < bd) { bd = d; best = i; } } return best; };
-  for (const [c, want] of [[0, 0.86], [1, 0.69], [2, 0.6]]) {
-    const wi = pick(c, want); const s = Math.round(wi * 0.01 * 2500);
-    OV.regs.push({ c, phi: phi[wi] / 1e4, data: p.subarray(s, s + 5000) });
+const OV = (() => {
+  const R = D.replay.find(r => r.id === 14) || D.replay.find(r => r.kind === "ramp");
+  const p = b64(R.p, Int16Array), y = b64(R.y, Uint8Array), phi = b64(R.phi, Int16Array), FS = R.fs_plot;
+  const T0 = 5, T1 = 27.5, SPEED = 1.5, SPAN = 3;
+  let running = false, start = 0, lastUi = 0, lastState = -1;
+  const winAt = t => Math.max(0, Math.min(y.length - 1, Math.round((t - 0.05) / 0.01)));
+  function frame(now) {
+    if (!running) return;
+    if (!start) start = now;
+    const t = T0 + ((now - start) / 1000 * SPEED) % (T1 - T0);
+    const cv = $("#ov-scope"), { g, w, h } = setup(cv);
+    const cols = [css("--c0"), css("--c1"), css("--c2")], grid = css("--grid");
+    const ys = lin(-3.4, 3.4, h - 6, 6);
+    g.strokeStyle = grid; g.lineWidth = 1;
+    for (const v of [-2, 0, 2]) { g.beginPath(); g.moveTo(0, ys(v) + .5); g.lineTo(w, ys(v) + .5); g.stroke(); }
+    g.fillStyle = css("--ink-3"); g.font = "10.5px " + css("--f-mono"); g.textAlign = "left"; g.textBaseline = "middle";
+    for (const v of [-2, 0, 2]) g.fillText((v > 0 ? "+" : "") + v, 4, ys(v) - 7);
+    const n = Math.max(2, Math.floor(w)), per = SPAN * FS / n, s0 = (t - SPAN) * FS;
+    let cur = -1;
+    g.lineWidth = 1.2;
+    for (let x = 0; x < n; x++) {
+      const a = Math.max(0, Math.floor(s0 + x * per)), b = Math.min(p.length, Math.floor(s0 + (x + 1) * per) + 1);
+      let mn = 0, mx = 0; for (let i = a; i < b; i++) { const v = p[i]; if (v < mn) mn = v; if (v > mx) mx = v; }
+      const c = y[winAt((s0 + x * per) / FS)];
+      if (c !== cur) { if (cur >= 0) g.stroke(); g.strokeStyle = cols[c]; g.beginPath(); cur = c; }
+      g.moveTo(x + .5, ys(mn / 1000)); g.lineTo(x + .5, ys(mx / 1000));
+    }
+    g.stroke();
+    const rb = $("#ov-ribbon"), r2 = setup(rb);
+    for (let x = 0; x < n; x += 2) { r2.g.fillStyle = cols[y[winAt(t - SPAN + x / n * SPAN)]]; r2.g.fillRect(x, 3, 2.2, r2.h - 6); }
+    if (now - lastUi > 150) {
+      lastUi = now; const k = winAt(t);
+      $("#ov-phi").textContent = "φ = " + (phi[k] / 1e4).toFixed(3);
+      if (y[k] !== lastState) { lastState = y[k]; $("#ov-state").replaceChildren(chip(y[k])); }
+    }
+    requestAnimationFrame(frame);
   }
-  const box = $("#ov-regs"); OV.regs.forEach((r, i) => { const c = chip(r.c); c.style.cursor = "pointer"; c.addEventListener("click", () => { OV.i = i; OV.t0 = performance.now(); }); box.append(c); });
+  return { start() { if (!running) { running = true; requestAnimationFrame(frame); } }, stop() { running = false; } };
 })();
-function drawScope() {
-  if ($("#v-overview").hidden) return requestAnimationFrame(drawScope);
-  const cv = $("#ov-scope"), { g, w, h } = setup(cv);
-  const now = performance.now(); if (!OV.t0) OV.t0 = now;
-  let el_ = (now - OV.t0) / 1000; if (el_ > 4) { OV.i = (OV.i + 1) % 3; OV.t0 = now; el_ = 0; }
-  const R = OV.regs[OV.i], span = 750, start = Math.floor(el_ / 4 * (R.data.length - span));
-  const ys = lin(-3.2, 3.2, h - 6, 6);
-  g.strokeStyle = css("--grid"); g.lineWidth = 1; for (const v of [-2, 0, 2]) { g.beginPath(); g.moveTo(0, ys(v) + .5); g.lineTo(w, ys(v) + .5); g.stroke(); }
-  g.strokeStyle = css(["--c0", "--c1", "--c2"][R.c]); g.lineWidth = 1.5; g.beginPath();
-  for (let i = 0; i < span; i++) { const x = i / (span - 1) * w, v = R.data[start + i] / 1000; i ? g.lineTo(x, ys(v)) : g.moveTo(x, ys(v)); }
-  g.stroke();
-  $("#ov-reg-name").textContent = CL[R.c]; $("#ov-phi").textContent = "φ = " + R.phi.toFixed(2);
-  $$("#ov-regs .chip").forEach((c, i) => c.style.outline = i === OV.i ? "2px solid " + css("--ink-3") : "none");
-  requestAnimationFrame(drawScope);
-}
 function renderOverview() {
   const best = rowOf("tuned", "fast", BEST), rule = rowOf("tuned", "fast", "rms_rule"), danger = rowOf("tuned", "fast", "rms_danger"), bestS = rowOf("tuned", "test", BEST);
+  $("#ov-step3").textContent = `best: ${fmtMs(best.lead_ms_median)} median warning`;
   const T = $("#ov-tiles"); T.replaceChildren();
   const tile = (v, l, c) => el("div", {}, [el("div", { cls: "tile-v", text: v }), el("div", { cls: "tile-l", text: l }), el("div", { cls: "tile-c", text: c })]);
   T.append(
-    tile(fmtMs(best.lead_ms_median), "median warning, fast lean-outs", `${NAME[BEST]} · RMS rule ${fmtMs(rule.lead_ms_median)} · danger alarm ${fmtMs(danger.lead_ms_median)}`),
-    tile(fmtPct(best.pct_runs_lead_ge_valve, 0), "of fast runs warned ≥ 40 ms early", `enough time for the fuel valve · worst run ${fmtMs(best.lead_ms_min)}`),
-    tile(fmtPct(bestS.recall[1], 0), "of transition windows caught", `slow sweeps, at ${fmtPct(bestS.false_alarm_rate)} false alarms · RMS rule ${fmtPct(rowOf("tuned", "test", "rms_rule").recall[1], 0)}`),
+    tile(fmtMs(best.lead_ms_median), "median warning on 12 unseen fast lean-outs", `${NAME[BEST]}. RMS rule ${fmtMs(rule.lead_ms_median)}, danger alarm ${fmtMs(danger.lead_ms_median)}`),
+    tile(fmtPct(best.pct_runs_lead_ge_valve, 0), "of fast runs warned at least 40 ms early", `enough for the fuel valve · worst run ${fmtMs(best.lead_ms_min)}`),
+    tile(fmtPct(bestS.recall[1], 0), "of transition windows caught", `slow sweeps, ${fmtPct(bestS.false_alarm_rate)} false alarms · RMS rule ${fmtPct(rowOf("tuned", "test", "rms_rule").recall[1], 0)}`),
     tile((best.latency_ms ?? 0).toFixed(1) + " ms", "per decision on one CPU core", "a new window arrives every 10 ms"));
-  // rayleigh
   const RB = $("#ov-rayleigh"); RB.replaceChildren();
   for (const [i, r] of D.rayleigh.entries()) {
     const w = Math.max(0, r.mean) / 0.8 * 100;
@@ -883,72 +931,119 @@ const Replay = (() => {
 // =============================== SIMULATOR ===============================
 const Sim = (() => {
   const forest = new CI.Forest(D.forest);
-  const N = 10000; const bufP = new Float32Array(N), bufQ = new Float32Array(N); let w = 0, filled = 0;
-  let sim, running = false, paused = false, raf = 0, last = 0, ramp = null, acc = 0, sinceWin = 0, pred = [], alarm = { on: false, hi: 0, lo: 0 }, hist = [], lastFeat = null, lastProb = [1, 0, 0], info = {};
-  const tmpP = new Float32Array(400), tmpQ = new Float32Array(400);
-  const phiIn = $("#sm-phi"), flowIn = $("#sm-flow"), turbIn = $("#sm-turb");
-  function reset() { sim = new CI.Combustor({ flow_factor: +flowIn.value, s_nu: +turbIn.value }, (Math.random() * 1e9) | 0); sim.phi = +phiIn.value; bufP.fill(0); bufQ.fill(0); w = 0; filled = 0; hist = []; alarm = { on: false, hi: 0, lo: 0 }; ramp = null; $("#sm-ramp").textContent = "Auto lean-out (20 s)"; }
-  phiIn.oninput = () => { sim.phi = +phiIn.value; ramp = null; $("#sm-ramp").textContent = "Auto lean-out (20 s)"; };
+  const N = 10000, bufP = new Float32Array(N), bufQ = new Float32Array(N), tmpP = new Float32Array(400), tmpQ = new Float32Array(400);
+  let w = 0, filled = 0, sim, running = false, paused = false, last = 0, acc = 0, sinceWin = 0, raf = 0, lastUi = 0;
+  let ramp = null, phiTarget = null, alarm, hist, probE, featE, psdE, psdDf = 1, fpk = 0, decs, info = { nu: 0, eta: 0 }, etaShow = 0;
+  const phiIn = $("#sm-phi"), flowIn = $("#sm-flow"), turbIn = $("#sm-turb"), rampBtn = $("#sm-ramp");
+  const RAMP_TXT = "Auto lean-out: 0.88 → 0.56 in 20 s";
+  const CAP = [
+    "Quiet turbulent noise. The flame's heat release lags the pressure by more than 90°, so it damps the sound. The needle sits far left of the transition line.",
+    "The flame's driving is close to the damping. Random gusts tip it over for a moment (the faint dot crosses zero), so bursts of the 210 Hz tone grow and die away. This is the warning phase a detector should flag.",
+    "Driving beats damping, so the oscillation sustains itself at about 2 kPa: the limit cycle. An alarm that only fires now is too late.",
+  ];
+  // persistent DOM: built once, values updated in place
+  const probBox = $("#sm-probs"), featBox = $("#sm-feats"), probEls = [], featEls = [];
+  [0, 1, 2].forEach(c => { const fill = el("i", { style: `width:0%;background:var(--c${c})` }), val = el("span", { cls: "mono", style: "text-align:right", text: "0%" });
+    probBox.append(el("div", { cls: "r" }, [chip(c), el("div", { cls: "meter" }, [fill]), val])); probEls.push([fill, val]); });
+  const FL = ["RMS p′", "Kurtosis", "FFT peak ratio", "Zero-crossing regularity", "Phase lag Δθ"], FU = [" kPa", "", "", "", "°"], FMAX = [2.6, 8, 1, 2.4, 180], FD = [2, 2, 2, 2, 0];
+  FL.forEach((l, j) => { const fill = el("i", { style: "width:0%" }), val = el("span", { cls: "mono", style: "text-align:right", text: "–" });
+    featBox.append(el("div", { cls: "featrow" }, [el("span", { text: l }), val, el("div", { cls: "meter" }, [fill])])); featEls.push([fill, val]); });
+  $("#sm-forest-note").textContent = `Browser forest: 60 trees, threshold ${fmtPct(D.forest.tau, 0)} (≤ 5% false alarms on validation), ${fmtPct(D.forest.test_acc_tuned)} accurate on held-out runs. Bars are smoothed over about 0.1 s.`;
+
+  function reset(keepPhi) {
+    sim = new CI.Combustor({ flow_factor: +flowIn.value, s_nu: +turbIn.value }, (Math.random() * 1e9) | 0);
+    if (!keepPhi) phiIn.value = 0.88;
+    sim.phi = +phiIn.value; bufP.fill(0); bufQ.fill(0); w = 0; filled = 0; hist = []; decs = []; alarm = { on: false, hi: 0, lo: 0 };
+    probE = [1, 0, 0]; featE = null; psdE = null; ramp = null; phiTarget = null; rampBtn.textContent = RAMP_TXT; markPreset();
+  }
+  function markPreset() { $$(".presets button").forEach(b => b.setAttribute("aria-pressed", phiTarget !== null && Math.abs(+b.dataset.phi - phiTarget) < 1e-6 ? "true" : "false")); }
+  phiIn.oninput = () => { sim.phi = +phiIn.value; ramp = null; phiTarget = null; rampBtn.textContent = RAMP_TXT; markPreset(); };
   flowIn.oninput = () => { sim.P.flow_factor = +flowIn.value; $("#sm-flow-v").textContent = (+flowIn.value).toFixed(2); };
   turbIn.oninput = () => { sim.P.s_nu = +turbIn.value; $("#sm-turb-v").textContent = turbIn.value; };
-  $("#sm-ramp").onclick = () => { if (ramp) { ramp = null; $("#sm-ramp").textContent = "Auto lean-out (20 s)"; return; } phiIn.value = 0.88; sim.phi = 0.88; ramp = { t: 0 }; $("#sm-ramp").textContent = "Stop lean-out"; };
-  $("#sm-pause").onclick = () => { paused = !paused; $("#sm-pause").textContent = paused ? "Resume" : "Pause"; if (!paused) last = performance.now(); };
-  $("#sm-reset").onclick = () => { phiIn.value = 0.88; reset(); };
-  $("#sm-forest-note").textContent = `Browser forest: 60 trees, depth ≤ 10, threshold ${fmtPct(D.forest.tau, 0)} (≤ 5% false alarms on validation). Held-out accuracy ${fmtPct(D.forest.test_acc_tuned)}.`;
-  const probBox = $("#sm-probs"), featBox = $("#sm-feats");
-  const FL = ["RMS p′", "Kurtosis", "FFT peak ratio", "Zero-crossing regularity", "Phase lag Δθ"], FU = [" kPa", "", "", "", "°"], FMAX = [2.6, 8, 1, 2.4, 180], FD = [2, 2, 2, 2, 0];
+  $$(".presets button").forEach(b => b.onclick = () => { ramp = null; rampBtn.textContent = RAMP_TXT; phiTarget = +b.dataset.phi; markPreset(); });
+  rampBtn.onclick = () => { if (ramp) { ramp = null; rampBtn.textContent = RAMP_TXT; return; } phiTarget = null; markPreset(); sim.phi = 0.88; phiIn.value = 0.88; ramp = { t: 0 }; rampBtn.textContent = "Stop lean-out"; };
+  $("#sm-pause").onclick = () => { paused = !paused; $("#sm-pause").textContent = paused ? "Resume" : "Pause"; last = performance.now(); };
+  $("#sm-reset").onclick = () => reset(false);
+
+  function lastN(buf, n) { const out = new Float32Array(n); for (let i = 0; i < n; i++) out[i] = buf[(w - n + i + N) % N]; return out; }
+  function classify() {
+    const r = CI.features(lastN(bufP, 500), lastN(bufQ, 500)), pr = forest.proba(r.F), d = forest.decide(pr);
+    if (d >= 1) { alarm.hi++; alarm.lo = 0; } else { alarm.lo++; alarm.hi = 0; }
+    if (!alarm.on && alarm.hi >= 3) alarm.on = true; else if (alarm.on && alarm.lo >= 10) alarm.on = false;
+    const a = 0.12; probE = probE.map((v, i) => v + a * (pr[i] - v));
+    featE = featE ? featE.map((v, i) => v + 0.2 * (r.F[i] - v)) : r.F.slice();
+    if (!psdE) psdE = Float32Array.from(r.psd); else for (let k = 0; k < psdE.length; k++) psdE[k] += 0.25 * (r.psd[k] - psdE[k]);
+    psdDf = r.df; fpk += 0.3 * (r.fpk - fpk);
+    decs.push(d); if (decs.length > 15) decs.shift();
+    hist.push([sim.regime(sim.phi), d, alarm.on ? 1 : 0]); if (hist.length > 2000) hist.shift();
+  }
+  const modeDec = () => { const c = [0, 0, 0]; for (const d of decs) c[d]++; return c.indexOf(Math.max(...c)); };
+  function step(dt) {
+    if (ramp) { ramp.t += dt; const ph = 0.88 - 0.32 * Math.min(1, ramp.t / 20); sim.phi = ph; phiIn.value = ph; if (ramp.t >= 20) { ramp = null; rampBtn.textContent = RAMP_TXT; } }
+    else if (phiTarget !== null) { const d = phiTarget - sim.phi, mv = 0.08 * dt; sim.phi = Math.abs(d) <= mv ? phiTarget : sim.phi + Math.sign(d) * mv; phiIn.value = sim.phi; }
+    acc += dt * 10000; let n = Math.floor(acc); acc -= n;
+    while (n > 0) { const k = Math.min(n, 100 - sinceWin); info = sim.run(k, tmpP, tmpQ);
+      for (let i = 0; i < k; i++) { bufP[w] = tmpP[i]; bufQ[w] = tmpQ[i]; w = (w + 1) % N; } filled = Math.min(N, filled + k);
+      sinceWin += k; n -= k; if (sinceWin >= 100) { sinceWin = 0; if (filled >= 500) classify(); } }
+  }
+  function setBig(id, k) { const e = $(id); e.className = "bigchip k" + k; e.lastChild.textContent = CL[k]; }
+  function ui() {
+    const reg = sim.regime(sim.phi), nu = sim.nu(sim.phi), th = sim.thetaDeg(sim.phi), drive = sim.P.beta * Math.cos(th * Math.PI / 180);
+    setBig("#sm-true", reg); setBig("#sm-pred", decs.length ? modeDec() : 0);
+    $("#sm-lamp").className = "lamp" + (alarm.on ? " on" : ""); $("#sm-alarm-t").textContent = alarm.on ? "ON" : "Off";
+    $("#sm-phi-v").textContent = sim.phi.toFixed(3); $("#sm-nu").textContent = (nu >= 0 ? "+" : "−") + Math.abs(nu).toFixed(0) + " s⁻¹";
+    $("#sm-caption").textContent = CAP[reg];
+    $("#sm-physline").textContent = `flame lag θ ${th.toFixed(0)}° · driving β cos θ ${drive.toFixed(0)} s⁻¹ · damping α ${sim.P.alpha.toFixed(0)} s⁻¹ · transition starts at ν = ${(-2 * sim.P.s_nu).toFixed(0)} s⁻¹`;
+    probE.forEach((v, c) => { probEls[c][0].style.width = (v * 100).toFixed(1) + "%"; probEls[c][1].textContent = Math.round(v * 100) + "%"; });
+    if (featE) featE.forEach((v, j) => { featEls[j][0].style.width = Math.min(100, Math.max(0, v / FMAX[j] * 100)).toFixed(1) + "%"; featEls[j][1].textContent = v.toFixed(FD[j]) + FU[j]; });
+    $("#sm-fpk").textContent = psdE ? "peak " + Math.round(fpk) + " Hz" : "";
+  }
+  function draw() {
+    const K = { c: [css("--c0"), css("--c1"), css("--c2")], grid: css("--grid"), ink3: css("--ink-3"), mono: css("--f-mono"), trace: css("--trace"), traceQ: css("--trace-q"), panel2: css("--panel-2"), crit: css("--crit"), ink: css("--ink") };
+    { const cv = $("#sm-scope"), { g, w: W, h } = setup(cv); const n = 3000, P = lastN(bufP, n), Q = lastN(bufQ, n);
+      const ys = lin(-3.4, 3.4, h * 0.7, 8), yq = lin(-4, 4, h - 4, h * 0.74), xw = i => 30 + i / (n - 1) * (W - 30);
+      g.fillStyle = K.panel2; g.fillRect(xw(n - 500), 4, W - xw(n - 500), h - 6);
+      g.fillStyle = K.ink3; g.font = "10.5px " + K.mono; g.textAlign = "right"; g.textBaseline = "top"; g.fillText("window being classified", W - 4, 6);
+      g.strokeStyle = K.grid; g.lineWidth = 1; g.textBaseline = "middle";
+      for (const v of [-2, 0, 2]) { g.beginPath(); g.moveTo(30, ys(v) + .5); g.lineTo(W, ys(v) + .5); g.stroke(); g.fillText(v, 24, ys(v)); }
+      for (const [A, col, yy, lw] of [[Q, K.traceQ, yq, 1], [P, K.trace, ys, 1.4]]) { g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); for (let i = 0; i < n; i += 2) { const x = xw(i), yv = yy(A[i]); i ? g.lineTo(x, yv) : g.moveTo(x, yv); } g.stroke(); } }
+    { const cv = $("#sm-meter"), { g, w: W, h } = setup(cv); const lo = -100, hi = 30, x0 = 12, x1 = W - 12, X = lin(lo, hi, x0, x1), nuT = -2 * sim.P.s_nu, yb = 30, hb = 26;
+      const zones = [[lo, nuT, "--c0-soft", "Stable"], [nuT, 0, "--c1-soft", "Transition"], [0, hi, "--c2-soft", "Unstable"]];
+      zones.forEach(([a, b, c, l], i) => { g.fillStyle = css(c); g.fillRect(X(a), yb, X(b) - X(a), hb); g.fillStyle = K.ink; g.font = "600 12px " + css("--f-body"); g.textAlign = "right"; g.textBaseline = "middle"; g.fillText(l, X(b) - 8, yb + hb / 2); });
+      g.fillStyle = K.ink3; g.font = "10.5px " + K.mono; g.textBaseline = "top";
+      for (const v of [-100, -75, -50, -25, 0, 25]) { g.textAlign = "center"; g.fillText(v, X(v), yb + hb + 6); }
+      g.textAlign = "right"; g.fillText("s⁻¹", x1, yb + hb + 20);
+      const nu = sim.nu(sim.phi); etaShow += 0.15 * ((info.eta || 0) - etaShow);
+      const xe = X(Math.max(lo, Math.min(hi, nu + etaShow))); g.fillStyle = K.ink3; g.globalAlpha = 0.45; g.beginPath(); g.arc(xe, yb + hb / 2, 6, 0, 7); g.fill(); g.globalAlpha = 1;
+      const xn = X(Math.max(lo, Math.min(hi, nu))); g.strokeStyle = K.ink; g.lineWidth = 2.5; g.beginPath(); g.moveTo(xn, yb - 12); g.lineTo(xn, yb + hb + 2); g.stroke();
+      g.fillStyle = K.ink; g.beginPath(); g.moveTo(xn - 6, yb - 16); g.lineTo(xn + 6, yb - 16); g.lineTo(xn, yb - 8); g.fill();
+      g.font = "600 11px " + K.mono; g.textAlign = xn > W - 80 ? "right" : "left"; g.textBaseline = "bottom"; g.fillText("ν = " + nu.toFixed(0), xn + (xn > W - 80 ? -9 : 9), yb - 6); }
+    if (psdE) { const cv = $("#sm-spec"), { g, w: W, h } = setup(cv); let mx = 0; for (const v of psdE) if (v > mx) mx = v;
+      const xs = lin(0, psdE.length * psdDf, 50, W - 14), ys = lin(-60, 0, h - 20, 14);
+      g.strokeStyle = K.grid; g.fillStyle = K.ink3; g.font = "10.5px " + K.mono; g.textAlign = "right"; g.textBaseline = "middle"; g.lineWidth = 1;
+      for (const v of [0, -20, -40, -60]) { g.beginPath(); g.moveTo(50, ys(v) + .5); g.lineTo(W - 14, ys(v) + .5); g.stroke(); g.fillText(v + " dB", 46, ys(v)); }
+      g.textAlign = "center"; g.textBaseline = "top"; for (const f of [0, 250, 500, 750, 1000]) g.fillText(f, xs(f), h - 16);
+      g.beginPath(); g.moveTo(xs(0), ys(-60)); for (let k = 0; k < psdE.length; k++) g.lineTo(xs(k * psdDf), ys(Math.max(-60, 10 * Math.log10(psdE[k] / mx + 1e-9)))); g.lineTo(xs((psdE.length - 1) * psdDf), ys(-60)); g.closePath();
+      g.globalAlpha = 0.18; g.fillStyle = K.trace; g.fill(); g.globalAlpha = 1; g.strokeStyle = K.trace; g.lineWidth = 1.5; g.stroke();
+      g.setLineDash([3, 3]); g.strokeStyle = K.ink3; g.beginPath(); g.moveTo(xs(210), 14); g.lineTo(xs(210), h - 20); g.stroke(); g.setLineDash([]);
+      g.fillStyle = K.ink3; g.textAlign = "left"; g.textBaseline = "top"; g.fillText("210 Hz mode", xs(210) + 4, 0); }
+    { const cv = $("#sm-hist"), { g, w: W, h } = setup(cv); const n = 2000, x0 = 4, bw = (W - 8) / n, laneH = 46;
+      const lanes = [[18, 0, "True regime"], [18 + laneH + 30, 1, "Random Forest decision"]];
+      g.font = "11px " + css("--f-body"); g.fillStyle = K.ink3; g.textAlign = "left"; g.textBaseline = "bottom";
+      for (const [y0, , l] of lanes) { g.fillStyle = K.panel2; g.fillRect(x0, y0, W - 8, laneH); g.fillStyle = K.ink3; g.fillText(l, x0, y0 - 3); }
+      hist.forEach((r, i) => { const x = x0 + (n - hist.length + i) * bw; g.fillStyle = K.c[r[0]]; g.fillRect(x, lanes[0][0], bw + .6, laneH); g.fillStyle = K.c[r[1]]; g.fillRect(x, lanes[1][0], bw + .6, laneH);
+        if (r[2]) { g.fillStyle = K.crit; g.fillRect(x, lanes[1][0] + laneH + 5, bw + .6, 7); } });
+      g.fillStyle = K.ink3; g.textBaseline = "top"; g.fillText("alarm", x0, lanes[1][0] + laneH + 15); }
+  }
   function loop(now) {
     if (!running) return;
     const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    if (!paused) {
-      if (ramp) { ramp.t += dt; const ph = 0.88 - (0.88 - 0.56) * Math.min(1, ramp.t / 20); sim.phi = ph; phiIn.value = ph; if (ramp.t >= 20) { ramp = null; $("#sm-ramp").textContent = "Auto lean-out (20 s)"; } }
-      acc += dt * 10000; let n = Math.floor(acc); acc -= n;
-      while (n > 0) { const k = Math.min(n, 100 - sinceWin);
-        info = sim.run(k, tmpP, tmpQ);
-        for (let i = 0; i < k; i++) { bufP[w] = tmpP[i]; bufQ[w] = tmpQ[i]; w = (w + 1) % N; } filled = Math.min(N, filled + k);
-        sinceWin += k; n -= k;
-        if (sinceWin >= 100) { sinceWin = 0; if (filled >= 500) classify(); } }
-    }
-    draw(); raf = requestAnimationFrame(loop);
+    if (!paused) step(dt);
+    draw(); if (now - lastUi > 200) { lastUi = now; ui(); }
+    raf = requestAnimationFrame(loop);
   }
-  function lastN(buf, n) { const out = new Float32Array(n); for (let i = 0; i < n; i++) out[i] = buf[(w - n + i + N) % N]; return out; }
-  function classify() {
-    const r = CI.features(lastN(bufP, 500), lastN(bufQ, 500)); lastFeat = r; lastProb = forest.proba(r.F); const d = forest.decide(lastProb);
-    if (d >= 1) { alarm.hi++; alarm.lo = 0; } else { alarm.lo++; alarm.hi = 0; }
-    if (!alarm.on && alarm.hi >= 3) alarm.on = true; else if (alarm.on && alarm.lo >= 10) alarm.on = false;
-    hist.push([sim.regime(sim.phi), d, alarm.on ? 1 : 0]); if (hist.length > 2000) hist.shift();
-  }
-  function draw() {
-    $("#sm-phi-v").textContent = sim.phi.toFixed(3);
-    const th = sim.thetaDeg(sim.phi), drive = sim.P.beta * Math.cos(th * Math.PI / 180), nu = drive - sim.P.alpha, reg = sim.regime(sim.phi);
-    $("#sm-theta").textContent = th.toFixed(1) + "°"; $("#sm-drive").textContent = drive.toFixed(1) + " s⁻¹"; $("#sm-alpha").textContent = sim.P.alpha.toFixed(1) + " s⁻¹";
-    $("#sm-nu").textContent = (nu >= 0 ? "+" : "") + nu.toFixed(1) + " s⁻¹"; $("#sm-nuT").textContent = (-2 * sim.P.s_nu).toFixed(0) + " s⁻¹"; $("#sm-true").replaceChildren(chip(reg));
-    { const cv = $("#sm-scope"), { g, w: W, h } = setup(cv); const n = 3000, P = lastN(bufP, n), Q = lastN(bufQ, n);
-      const ys = lin(-3.2, 3.2, h * 0.68, 6), yq = lin(-4, 4, h - 4, h * 0.72);
-      g.strokeStyle = css("--grid"); g.lineWidth = 1; g.font = "10.5px " + css("--f-mono"); g.fillStyle = css("--ink-3"); g.textAlign = "right"; g.textBaseline = "middle";
-      for (const v of [-2, 0, 2]) { g.beginPath(); g.moveTo(30, ys(v) + .5); g.lineTo(W, ys(v) + .5); g.stroke(); g.fillText(v, 24, ys(v)); }
-      const xw = i => 30 + i / (n - 1) * (W - 30);
-      g.fillStyle = css("--panel-2"); g.fillRect(xw(n - 500), 6, W - xw(n - 500), h - 10);
-      for (const [A, col, yy, lw] of [[Q, css("--trace-q"), yq, 1], [P, css("--trace"), ys, 1.3]]) { g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); for (let i = 0; i < n; i += 2) { const x = xw(i), y = yy(A[i]); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
-    }
-    if (lastFeat) {
-      probBox.replaceChildren(...[0, 1, 2].map(c => el("div", { cls: "r" }, [chip(c), el("div", { cls: "meter" }, [el("i", { style: `width:${lastProb[c] * 100}%;background:var(--c${c})` })]), el("span", { cls: "mono", style: "text-align:right", text: fmtPct(lastProb[c], 0) })])));
-      featBox.replaceChildren(...lastFeat.F.map((v, j) => el("div", { cls: "featrow" }, [el("span", { text: FL[j] }), el("span", { cls: "mono", style: "text-align:right", text: v.toFixed(FD[j]) + FU[j] }), el("div", { cls: "meter" }, [el("i", { style: `width:${Math.min(100, Math.max(0, v / FMAX[j] * 100))}%` })])])));
-      const A = $("#sm-alarm"); A.className = "chip " + (alarm.on ? "alarm-on" : "alarm-off"); A.lastChild.textContent = alarm.on ? "Alarm on" : "Alarm off";
-      $("#sm-fpk").textContent = "peak " + lastFeat.fpk.toFixed(0) + " Hz";
-      const cv = $("#sm-spec"), { g, w: W, h } = setup(cv); const psd = lastFeat.psd, mx = Math.max(...psd);
-      const db = Array.from(psd, v => 10 * Math.log10(v / mx + 1e-9)), xs = lin(0, psd.length * lastFeat.df, 30, W - 18), ys = lin(-60, 0, h - 20, 6);
-      g.strokeStyle = css("--grid"); g.fillStyle = css("--ink-3"); g.font = "10.5px " + css("--f-mono"); g.textAlign = "right"; g.textBaseline = "middle";
-      for (const v of [0, -20, -40, -60]) { g.beginPath(); g.moveTo(30, ys(v) + .5); g.lineTo(W - 6, ys(v) + .5); g.stroke(); g.fillText(v, 26, ys(v)); }
-      g.textAlign = "center"; g.textBaseline = "top"; for (const f of [0, 250, 500, 750, 1000]) g.fillText(f, xs(f), h - 16);
-      g.strokeStyle = css("--trace"); g.lineWidth = 1.5; g.beginPath(); db.forEach((v, k) => { const x = xs(k * lastFeat.df), y = ys(Math.max(-60, v)); k ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
-    }
-    { const cv = $("#sm-hist"), { g, w: W, h } = setup(cv); const cols = [css("--c0"), css("--c1"), css("--c2")], n = 2000, bw = (W - 8) / n;
-      hist.forEach((r, i) => { const x = 4 + (n - hist.length + i) * bw; g.fillStyle = cols[r[0]]; g.fillRect(x, 10, bw + .6, 40); g.fillStyle = cols[r[1]]; g.fillRect(x, 60, bw + .6, 40); if (r[2]) { g.fillStyle = css("--crit"); g.fillRect(x, 106, bw + .6, 6); } });
-      g.fillStyle = css("--ink-3"); g.font = "10.5px " + css("--f-mono"); g.textAlign = "left"; g.textBaseline = "top"; g.fillText("true regime", 6, 122); g.fillText("RF decision · red = alarm", 6, 136); g.textAlign = "right"; g.fillText("now", W - 4, 122); }
-  }
-  reset();
-  return { start() { if (running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); }, stop() { running = false; cancelAnimationFrame(raf); } };
+  reset(false);
+  return { start() { if (running) return; running = true; last = performance.now(); ui(); raf = requestAnimationFrame(loop); }, stop() { running = false; cancelAnimationFrame(raf); } };
 })();
 
 // =============================== RESULTS ===============================
@@ -975,7 +1070,7 @@ function renderResults() {
   drawLead(); drawGap(); drawTrade(); renderFarD(); renderCM(); drawHist(); renderImp(); drawTrain();
 }
 function drawLead() {
-  const R = rows(RS.op, RS.scn), cv = $("#rs-lead"), H = 40 + R.length * 34; cv.setAttribute("height", H); const { g, w, h } = setup(cv);
+  const R = rows(RS.op, RS.scn), cv = $("#rs-lead"), H = 40 + R.length * 34; cv.dataset.h = H; const { g, w, h } = setup(cv);
   const all = R.flatMap(r => Object.values(r.per_run).map(v => v.lead_ms)).filter(isFinite);
   const mx = Math.max(100, ...all) * 1.05, mn = Math.min(-60, ...all);
   const box = { x0: 214, x1: w - 14, y0: 6, y1: h - 34, H: h }, xs = lin(mn, mx, box.x0, box.x1);
@@ -994,7 +1089,7 @@ function drawLead() {
   cv.onpointerleave = hideTip;
 }
 function drawGap() {
-  const Q = D.summary.quiet_gap, keys = MODELS.map(m => m.name).filter(n => Q[n]); const cv = $("#rs-gap"), H = 30 + keys.length * 34; cv.setAttribute("height", H); const { g, w, h } = setup(cv);
+  const Q = D.summary.quiet_gap, keys = MODELS.map(m => m.name).filter(n => Q[n]); const cv = $("#rs-gap"), H = 30 + keys.length * 34; cv.dataset.h = H; const { g, w, h } = setup(cv);
   const first = Q[keys[0]]; $("#qg-frac").textContent = fmtPct(first.gap_fraction, 0);
   const box = { x0: 214, x1: w - 46, y0: 4, y1: h - 26, H: h }, xs = lin(0, 1, box.x0, box.x1);
   axes(g, box, { ticks: [0, .25, .5, .75, 1], map: xs, fmt: v => (v * 100) + "%" }, { ticks: [], map: v => v });
@@ -1094,6 +1189,8 @@ function renderMethod() {
 }
 
 const RENDER = { overview: renderOverview, replay: () => Replay.draw(), results: renderResults, realdata: renderReal, method: renderMethod, simulator: () => {} };
-route(); requestAnimationFrame(drawScope);
+route();
 })();
 </script>
+
+</body></html>
