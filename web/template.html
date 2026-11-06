@@ -1,0 +1,935 @@
+<title>Combustion Instability Early Warning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: instrument-panel app — sticky header with tab rail, one view at a time, panels on a cool lab-grey ground. */
+:root {
+  --bg: #f3f5f8; --panel: #ffffff; --panel-2: #eef1f5; --ink: #121826; --ink-2: #4a5263; --ink-3: #6f7788;
+  --line: #d9dee6; --line-2: #e7eaf0; --accent: #1d2b4a; --accent-ink: #ffffff; --focus: #2a78d6;
+  --c0: #2a78d6; --c1: #eda100; --c2: #e34948;   /* Stable · Transition · Unstable */
+  --c0-soft: #dbe9fa; --c1-soft: #fbedc8; --c2-soft: #fadcdc;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #6250d6; --s-rule: #8a91a0;
+  --good: #0ca30c; --crit: #d03b3b;
+  --trace: #1d2b4a; --trace-q: #c2620e; --grid: #e4e8ee;
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f131b; --panel: #171c26; --panel-2: #1e2430; --ink: #eef1f6; --ink-2: #b6bdcb; --ink-3: #8b93a3;
+  --line: #2c3442; --line-2: #232a36; --accent: #c9d6f2; --accent-ink: #0f131b; --focus: #6da7ec;
+  --c0: #3987e5; --c1: #c98500; --c2: #d43c3c; --c0-soft: #1b2c45; --c1-soft: #3a2d10; --c2-soft: #401c1f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #9085e9; --s-rule: #8b93a3;
+  --trace: #c9d6f2; --trace-q: #f0a35e; --grid: #252c38; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f131b; --panel: #171c26; --panel-2: #1e2430; --ink: #eef1f6; --ink-2: #b6bdcb; --ink-3: #8b93a3;
+  --line: #2c3442; --line-2: #232a36; --accent: #c9d6f2; --accent-ink: #0f131b; --focus: #6da7ec;
+  --c0: #3987e5; --c1: #c98500; --c2: #d43c3c; --c0-soft: #1b2c45; --c1-soft: #3a2d10; --c2-soft: #401c1f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #9085e9; --s-rule: #8b93a3;
+  --trace: #c9d6f2; --trace-q: #f0a35e; --grid: #252c38; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--panel); }
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--panel); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 20px; padding-block: 10px; flex-wrap: wrap; }
+.brand { display: flex; flex-direction: column; min-width: 0; }
+.brand b { font: 800 19px/1.1 var(--f-display); font-stretch: 85%; letter-spacing: .01em; }
+.brand span { font-size: 12px; color: var(--ink-3); }
+nav.tabs { display: flex; gap: 2px; margin-left: auto; flex-wrap: wrap; }
+nav.tabs a { text-decoration: none; color: var(--ink-2); font-weight: 500; font-size: 14px; padding: 7px 12px; border-radius: 7px; }
+nav.tabs a:hover { background: var(--panel-2); color: var(--ink); }
+nav.tabs a[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+main { padding-block: 28px 64px; }
+section.view[hidden] { display: none; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
+h1 { font-weight: 850; font-stretch: 80%; font-size: clamp(32px, 5vw, 54px); line-height: 1.02; letter-spacing: -.005em; }
+h2 { font-weight: 800; font-stretch: 85%; font-size: 26px; line-height: 1.15; }
+h3 { font-weight: 700; font-stretch: 90%; font-size: 17px; line-height: 1.25; }
+p { margin: 0; max-width: 68ch; }
+.lede { font-size: 17px; color: var(--ink-2); max-width: 64ch; }
+.eyebrow { font: 500 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.mono, .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.stack-lg { display: flex; flex-direction: column; gap: 28px; }
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 900px) { .g3, .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .g2, .g3, .g4 { grid-template-columns: minmax(0, 1fr); } nav.tabs { margin-left: 0; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; min-width: 0; }
+.panel h3 + p, .panel .sub { color: var(--ink-2); font-size: 14px; }
+.note { font-size: 13px; color: var(--ink-3); }
+.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.spread { justify-content: space-between; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 600 12px/1 var(--f-body); padding: 5px 9px 5px 7px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); white-space: nowrap; }
+.chip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.chip.k0 { background: var(--c0-soft); border-color: transparent; } .chip.k0 i { background: var(--c0); }
+.chip.k1 { background: var(--c1-soft); border-color: transparent; } .chip.k1 i { background: var(--c1); }
+.chip.k2 { background: var(--c2-soft); border-color: transparent; } .chip.k2 i { background: var(--c2); }
+.chip.alarm-on { background: var(--crit); color: #fff; border-color: transparent; } .chip.alarm-on i { background: #fff; }
+.chip.alarm-off { color: var(--ink-3); }
+button, select { font: 500 14px var(--f-body); color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:hover { border-color: var(--ink-3); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 6px 11px; background: var(--panel); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+label.ctl { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink-3); min-width: 0; }
+label.ctl select { width: 100%; }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+canvas { display: block; width: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
+.legend i.box { width: 10px; height: 10px; border-radius: 3px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font: 600 11.5px/1.2 var(--f-body); color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; vertical-align: bottom; white-space: normal; }
+table.text td { font-family: var(--f-body); text-align: left; white-space: normal; }
+table.text th { text-align: left; }
+td { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+td:first-child { font-family: var(--f-body); font-weight: 500; }
+tr.best td { background: var(--panel-2); }
+tr.rule td:first-child { color: var(--ink-2); }
+.tip { position: fixed; z-index: 50; pointer-events: none; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12.5px; box-shadow: 0 6px 24px rgba(10, 20, 40, .16); max-width: 280px; }
+.tip b { font: 600 14px var(--f-mono); }
+.tip .k { color: var(--ink-3); }
+.tip .ln { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+/* overview */
+.hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 28px; align-items: center; }
+@media (max-width: 900px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+.scope { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 14px 10px; }
+.scope .row { font-size: 12px; color: var(--ink-3); }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: var(--r); background: var(--panel); }
+.tiles > div { padding: 16px 18px; border-left: 1px solid var(--line-2); min-width: 0; }
+.tiles > div:first-child { border-left: 0; }
+@media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tiles > div:nth-child(3) { border-left: 0; } .tiles > div:nth-child(n+3) { border-top: 1px solid var(--line-2); } }
+.tile-v { font: 700 30px/1.1 var(--f-display); font-stretch: 85%; font-variant-numeric: tabular-nums; }
+.tile-l { font-size: 13px; color: var(--ink-2); }
+.tile-c { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+.loop { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.loop div { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--panel-2); }
+.loop b { font-family: var(--f-mono); font-size: 15px; }
+.eq { font-family: var(--f-mono); font-size: 14px; background: var(--panel-2); border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: nowrap; }
+.pipeline { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+.pipeline div { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--panel); position: relative; min-width: 0; }
+.pipeline div b { display: block; font: 700 14px var(--f-display); font-stretch: 90%; }
+.pipeline div span { font-size: 12.5px; color: var(--ink-2); }
+@media (max-width: 760px) { .pipeline { grid-template-columns: minmax(0, 1fr); } }
+.bars-h .r { display: grid; grid-template-columns: 150px minmax(0, 1fr) 56px; gap: 10px; align-items: center; font-size: 13px; }
+.bars-h .r .b { height: 10px; background: var(--panel-2); border-radius: 4px; overflow: hidden; }
+.bars-h .r .b > i { display: block; height: 100%; background: var(--ink-2); border-radius: 0 4px 4px 0; }
+
+/* replay */
+.replay-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; }
+@media (max-width: 1000px) { .replay-grid { grid-template-columns: minmax(0, 1fr); } }
+.readout { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13.5px; align-items: center; }
+.readout dt { color: var(--ink-3); } .readout dd { margin: 0; text-align: right; font-family: var(--f-mono); white-space: nowrap; }
+.modelcard { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.modelcard .name { font-weight: 600; font-size: 13.5px; }
+.meter { height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; position: relative; }
+.meter > i { display: block; height: 100%; background: var(--ink-2); }
+.meter > u { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--ink); }
+.verdict { font-size: 13px; padding: 8px 10px; border-radius: 8px; background: var(--panel-2); }
+.verdict b { font-family: var(--f-mono); }
+.ctlbar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: end; }
+@media (max-width: 760px) { .ctlbar { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ctlbar > .row { grid-column: 1 / -1; } }
+.lanes { font-size: 11.5px; color: var(--ink-3); }
+
+/* simulator */
+.sim-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; }
+@media (max-width: 1000px) { .sim-grid { grid-template-columns: minmax(0, 1fr); } }
+.big-phi { font: 800 44px/1 var(--f-display); font-stretch: 80%; font-variant-numeric: tabular-nums; }
+.featrow { display: grid; grid-template-columns: minmax(0, 1fr) 70px; gap: 4px 10px; font-size: 13px; align-items: center; }
+.featrow .meter { grid-column: 1 / -1; height: 6px; }
+.probs .r { display: grid; grid-template-columns: 90px minmax(0, 1fr) 46px; gap: 10px; align-items: center; font-size: 13px; }
+.probs .meter { height: 12px; }
+.cm { display: grid; grid-template-columns: 92px repeat(3, minmax(0, 1fr)); gap: 3px; font-size: 12px; }
+.cm div { padding: 8px 4px; text-align: center; border-radius: 4px; font-family: var(--f-mono); }
+.cm .h { font-family: var(--f-body); color: var(--ink-3); background: none; font-size: 11.5px; }
+.callout { border-left: 3px solid var(--ink-3); padding: 4px 0 4px 14px; color: var(--ink-2); font-size: 14px; max-width: 75ch; }
+code { font-family: var(--f-mono); font-size: 13px; background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+pre.code { font-family: var(--f-mono); font-size: 12.5px; background: var(--panel-2); border-radius: 8px; padding: 12px; overflow-x: auto; margin: 0; }
+footer { border-top: 1px solid var(--line); padding-block: 18px 30px; color: var(--ink-3); font-size: 12.5px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><b>Combustion Instability Early Warning</b><span>Rocket Propulsion term project · IIT Kharagpur</span></div>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#overview">Overview</a><a href="#replay">Live replay</a><a href="#simulator">Simulator</a>
+      <a href="#results">Results</a><a href="#realdata">Real data</a><a href="#method">Method</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+<!-- ============================ OVERVIEW ============================ -->
+<section class="view stack-lg" id="v-overview">
+  <div class="hero">
+    <div class="stack">
+      <div class="eyebrow">Thermoacoustic instability · 3-class detection · 10 kHz p′ and q′</div>
+      <h1>Flag the instability while it is still intermittent</h1>
+      <p class="lede">A lean premixed flame drifts from steady burning, through short bursts of sound, into a locked limit cycle. We train classifiers on 50 ms windows of chamber pressure and flame light to sound the alarm during the bursts, before the full oscillation forms.</p>
+      <div class="row"><button class="primary" data-go="replay">Watch a held-out run</button><button data-go="simulator">Drive the combustor yourself</button></div>
+    </div>
+    <div class="scope">
+      <div class="row spread"><span class="mono">p′ (kPa) · <span id="ov-reg-name">Stable</span></span><span class="mono" id="ov-phi">φ = 0.86</span></div>
+      <canvas id="ov-scope" height="190" aria-label="Pressure trace cycling through the three regimes"></canvas>
+      <div class="row" id="ov-regs"></div>
+    </div>
+  </div>
+
+  <div class="tiles" id="ov-tiles"></div>
+
+  <div class="grid g2">
+    <div class="panel stack">
+      <h3>Why the flame starts to sing</h3>
+      <p class="sub">Heat-release fluctuations q′ push on the acoustic field p′, the sound wave disturbs the flow u′ at the injector, and the disturbed mixture changes q′ again.</p>
+      <div class="loop"><div><b>q′</b><br><span class="note">unsteady heat release</span></div><div><b>p′</b><br><span class="note">chamber acoustics, 1/4-wave ≈ 210 Hz</span></div><div><b>u′</b><br><span class="note">flow and mixture at the injector</span></div></div>
+      <div class="eq">R = (1/T) ∫ p′(t) q′(t) dt &gt; 0 &nbsp;→&nbsp; flame adds energy to the wave</div>
+      <p class="sub">Measured on our held-out runs (normalised Rayleigh index per 50 ms window, waveguide delay removed):</p>
+      <div class="bars-h stack" id="ov-rayleigh" style="gap:8px"></div>
+    </div>
+    <div class="panel stack">
+      <div class="row spread"><h3>The route to instability, all 15 runs</h3><span class="note mono" id="bif-hover"></span></div>
+      <p class="sub">Every 4th window of every slow sweep: pressure RMS against equivalence ratio, coloured by the true regime. Bursts first appear inside the transition band, then the limit cycle takes over.</p>
+      <canvas id="ov-bif" height="300" aria-label="Pressure RMS versus equivalence ratio"></canvas>
+      <div class="legend" id="bif-legend"></div>
+    </div>
+  </div>
+
+  <div class="panel stack">
+    <h3>Detection pipeline</h3>
+    <div class="pipeline">
+      <div><b>Sensors</b><span>Piezo pressure p′ behind a 0.5 ms waveguide, photodiode q′. Both 10 kHz.</span></div>
+      <div><b>50 ms window</b><span>500 samples, about 10 acoustic cycles, new window every 10 ms.</span></div>
+      <div><b>Classifier</b><span>RMS rule, SVM or RF on 5 features, or 1D-CNN and CNN-LSTM on raw waves.</span></div>
+      <div><b>Alarm logic</b><span>Raise after 3 windows in a row (30 ms), clear after 10 calm windows.</span></div>
+      <div><b>Actuator</b><span>Secondary fuel valve needs about 40 ms to respond.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ REPLAY ============================ -->
+<section class="view stack" id="v-replay" hidden>
+  <div class="stack" style="gap:6px"><div class="eyebrow">Held-out data · never seen in training</div><h2>Live replay: two detectors on the same run</h2>
+  <p class="lede" style="font-size:15px">Pick a test run and two detectors. The run streams at real time (or faster) and each detector decides every 10 ms, exactly as it would on the rig.</p></div>
+  <div class="panel">
+    <div class="ctlbar">
+      <label class="ctl" for="rp-run">Run<select id="rp-run"></select></label>
+      <label class="ctl" for="rp-a">Detector A<select id="rp-a"></select></label>
+      <label class="ctl" for="rp-b">Detector B<select id="rp-b"></select></label>
+      <div class="row" style="gap:8px">
+        <button class="primary" id="rp-play" style="min-width:84px">Play</button>
+        <div class="seg" id="rp-speed" role="group" aria-label="Playback speed"></div>
+      </div>
+    </div>
+  </div>
+  <div class="replay-grid">
+    <div class="stack">
+      <div class="panel" style="padding:12px 14px">
+        <div class="row spread"><span class="eyebrow">Oscilloscope · last 0.4 s</span><div class="legend"><span><i style="background:var(--trace)"></i>p′ pressure (kPa)</span><span><i style="background:var(--trace-q)"></i>q′ flame light (a.u.)</span></div></div>
+        <canvas id="rp-scope" height="220"></canvas>
+      </div>
+      <div class="panel" style="padding:12px 14px">
+        <div class="row spread"><span class="eyebrow">Whole run · click to jump</span>
+          <div class="seg" id="rp-layer" role="group" aria-label="Background layer"><button aria-pressed="true" data-l="env">RMS envelope</button><button aria-pressed="false" data-l="spec">Spectrogram</button></div></div>
+        <canvas id="rp-timeline" height="300" style="cursor:pointer"></canvas>
+        <div class="legend" style="margin-top:6px"><span><i class="box" style="background:var(--c0)"></i>Stable</span><span><i class="box" style="background:var(--c1)"></i>Transition</span><span><i class="box" style="background:var(--c2)"></i>Unstable</span><span><i class="box" style="background:var(--crit);opacity:.9"></i>Alarm on</span><span><i style="background:var(--ink)"></i>Full instability onset (p′rms ≥ 1.2 kPa, sustained)</span></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel stack" style="gap:10px">
+        <dl class="readout">
+          <dt>Time</dt><dd id="rp-t">0.00 s</dd>
+          <dt>Equivalence ratio φ</dt><dd id="rp-phi">0.900</dd>
+          <dt>p′ RMS</dt><dd id="rp-rms">0.00 kPa</dd>
+          <dt>True regime</dt><dd id="rp-true"></dd>
+        </dl>
+      </div>
+      <div class="modelcard" id="rp-card-a"></div>
+      <div class="modelcard" id="rp-card-b"></div>
+      <p class="note">Warning time is counted from when the alarm went up, but never earlier than the true start of the transition. An alarm raised while the flame is still stable is a false alarm.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ SIMULATOR ============================ -->
+<section class="view stack" id="v-simulator" hidden>
+  <div class="stack" style="gap:6px"><div class="eyebrow">Runs in your browser · 10 000 samples per second</div><h2>Drive the combustor</h2>
+  <p class="lede" style="font-size:15px">The reduced-order combustor model runs live in this page, and the Random Forest classifies every 10 ms window it produces. Lean the mixture out and watch the bursts appear before the limit cycle.</p></div>
+  <div class="sim-grid">
+    <div class="stack">
+      <div class="panel stack">
+        <div class="eyebrow">Equivalence ratio</div>
+        <div class="big-phi" id="sm-phi-v">0.880</div>
+        <input type="range" id="sm-phi" min="0.55" max="0.90" step="0.0025" value="0.88" aria-label="Equivalence ratio">
+        <div class="row spread note"><span>0.55 lean</span><span>0.90 rich</span></div>
+        <div class="row"><button class="primary" id="sm-ramp">Auto lean-out (20 s)</button><button id="sm-pause">Pause</button><button id="sm-reset">Reset</button></div>
+        <label class="ctl" for="sm-flow"><span>Bulk flow (× reference) <span class="mono" id="sm-flow-v">1.00</span></span><input type="range" id="sm-flow" min="0.9" max="1.1" step="0.01" value="1"></label>
+        <label class="ctl" for="sm-turb"><span>Flame-gain turbulence s<sub>ν</sub> (1/s) <span class="mono" id="sm-turb-v">25</span></span><input type="range" id="sm-turb" min="10" max="40" step="1" value="25"></label>
+      </div>
+      <div class="panel stack" style="gap:8px">
+        <div class="eyebrow">Physics at this operating point</div>
+        <dl class="readout">
+          <dt>Flame phase lag θ</dt><dd id="sm-theta"></dd>
+          <dt>Rayleigh driving β cos θ</dt><dd id="sm-drive"></dd>
+          <dt>Acoustic damping α</dt><dd id="sm-alpha"></dd>
+          <dt>Net growth rate ν</dt><dd id="sm-nu"></dd>
+          <dt>Transition starts at −2 s<sub>ν</sub></dt><dd id="sm-nuT"></dd>
+          <dt>True regime</dt><dd id="sm-true"></dd>
+        </dl>
+        <p class="note">Transition starts when ν rises above −2 s<sub>ν</sub>: turbulent swings in flame gain then push the net growth positive for short moments, which is what makes the bursts.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="panel" style="padding:12px 14px">
+        <div class="row spread"><span class="eyebrow">Oscilloscope · last 0.3 s</span><div class="legend"><span><i style="background:var(--trace)"></i>p′ (kPa)</span><span><i style="background:var(--trace-q)"></i>q′ (a.u.)</span></div></div>
+        <canvas id="sm-scope" height="200"></canvas>
+      </div>
+      <div class="grid g2">
+        <div class="panel stack" style="gap:10px">
+          <div class="row spread"><h3>Random Forest decision</h3><span id="sm-alarm" class="chip alarm-off"><i></i>Alarm off</span></div>
+          <div class="probs stack" style="gap:8px" id="sm-probs"></div>
+          <div class="note" id="sm-forest-note"></div>
+        </div>
+        <div class="panel stack" style="gap:8px">
+          <h3>The five features, this window</h3>
+          <div class="stack" style="gap:8px" id="sm-feats"></div>
+        </div>
+      </div>
+      <div class="grid g2">
+        <div class="panel" style="padding:12px 14px">
+          <div class="row spread"><span class="eyebrow">Spectrum of p′ · 0–1000 Hz</span><span class="mono note" id="sm-fpk"></span></div>
+          <canvas id="sm-spec" height="150"></canvas>
+        </div>
+        <div class="panel" style="padding:12px 14px">
+          <div class="row spread"><span class="eyebrow">Last 20 s</span><span class="lanes">top: true regime · bottom: RF decision</span></div>
+          <canvas id="sm-hist" height="150"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ RESULTS ============================ -->
+<section class="view stack-lg" id="v-results" hidden>
+  <div class="stack" style="gap:6px"><div class="eyebrow">Held-out evaluation</div><h2>Results</h2>
+  <p class="lede" style="font-size:15px">Two test scenarios: the two held-out 30 s slow sweeps, and twelve fast lean-out transients (φ 0.86 → 0.58 in 1.5–4 s) that no model saw in training. Every number below is computed from those runs.</p></div>
+  <div class="panel row spread">
+    <div class="row"><span class="note">Scenario</span><div class="seg" id="rs-scn" role="group" aria-label="Scenario"><button data-v="fast" aria-pressed="true">Fast lean-outs (12 runs)</button><button data-v="test" aria-pressed="false">Slow sweeps (2 runs)</button></div></div>
+    <div class="row"><span class="note">Operating point</span><div class="seg" id="rs-op" role="group" aria-label="Operating point"><button data-v="tuned" aria-pressed="true">≤ 5% false alarms</button><button data-v="default" aria-pressed="false">Plain argmax</button></div></div>
+  </div>
+  <div class="panel stack">
+    <h3 id="rs-table-title">Model comparison</h3>
+    <div class="tablewrap"><table id="rs-table"></table></div>
+    <p class="note" id="rs-table-note"></p>
+  </div>
+  <div class="grid g2">
+    <div class="panel stack">
+      <h3>Warning time per run</h3>
+      <p class="sub">Each dot is one run: how long before full instability the alarm was up. Left of zero means the alarm came late. The dashed line is the 40 ms the fuel valve needs.</p>
+      <canvas id="rs-lead" height="330"></canvas>
+    </div>
+    <div class="panel stack">
+      <h3>The quiet-gap problem</h3>
+      <p class="sub">Inside the true transition, <span id="qg-frac"></span> of windows fall in a calm gap between bursts. Share of transition windows each model still flags (slow sweeps, ≤ 5% false alarms):</p>
+      <canvas id="rs-gap" height="300"></canvas>
+      <div class="legend"><span><i class="box" style="background:var(--s6)"></i>Windows with a burst</span><span><i class="box" style="background:var(--s3)"></i>Windows in a calm gap</span></div>
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="panel stack">
+      <div class="row spread"><h3>False alarms against early detection</h3></div>
+      <p class="sub">Sweeping each model's alarm threshold: share of stable windows flagged (x) against share of transition windows caught (y). Dots mark the chosen ≤ 5% operating point. <span id="to-scn"></span></p>
+      <canvas id="rs-trade" height="320"></canvas>
+      <div class="legend" id="rs-trade-legend"></div>
+    </div>
+    <div class="panel stack">
+      <h3>Where the false alarms happen</h3>
+      <p class="sub">Share of truly stable windows flagged, by how far the mixture still is from the Stable → Transition boundary (all 14 test runs, ≤ 5% operating point). Flags right next to the boundary are early calls rather than random alarms.</p>
+      <div class="tablewrap"><table id="rs-fard"></table></div>
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="panel stack">
+      <div class="row spread"><h3>Confusion matrix</h3><select id="rs-cm-model" aria-label="Model for confusion matrix"></select></div>
+      <p class="sub">Rows are the true regime, columns the prediction. Cells show the count and the share of the row.</p>
+      <div class="cm" id="rs-cm"></div>
+    </div>
+    <div class="panel stack" id="rs-deep-panel">
+    <h3>Deep-model training</h3>
+    <p class="sub">Validation accuracy (plain argmax) during training on the 11 training runs. Weights kept from the best validation checkpoint.</p>
+    <canvas id="rs-train" height="220"></canvas>
+    <div class="legend" id="rs-train-legend"></div>
+  </div>
+  </div>
+  <div class="grid g2">
+    <div class="panel stack">
+      <h3>What the Random Forest relies on</h3>
+      <p class="sub">Mean decrease in impurity, 100 trees.</p>
+      <div class="bars-h stack" id="rs-imp" style="gap:8px"></div>
+      <h3 style="margin-top:10px">Window length</h3>
+      <div class="tablewrap"><table id="rs-win"></table></div>
+    </div>
+    <div class="panel stack">
+      <div class="row spread"><h3>Feature distributions by regime</h3><select id="rs-feat" aria-label="Feature"></select></div>
+      <p class="sub">Training windows, share per bin.</p>
+      <canvas id="rs-hist" height="250"></canvas>
+      <div class="legend"><span><i style="background:var(--c0)"></i>Stable</span><span><i style="background:var(--c1)"></i>Transition</span><span><i style="background:var(--c2)"></i>Unstable</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ REAL DATA ============================ -->
+<section class="view stack-lg" id="v-realdata" hidden>
+  <div class="stack" style="gap:6px"><div class="eyebrow">External check</div><h2>Does it work on real combustor recordings?</h2>
+  <p class="lede" style="font-size:15px" id="rd-lede"></p></div>
+  <div class="grid g3" id="rd-examples"></div>
+  <div class="grid g3">
+    <div class="panel stack"><h3>Trained on the recordings</h3><p class="sub">Random Forest on the four pressure features, 7-fold cross-validation grouped by recording, so a recording is never in both train and test.</p><div class="tile-v" id="rd-a-acc"></div><div class="note" id="rd-a-rec"></div><div class="cm" id="rd-cm-a"></div></div>
+    <div class="panel stack"><h3>Trained only on our simulation</h3><p class="sub">Same features made rig-independent (RMS divided by the rig's stable baseline), applied with no retraining.</p><div class="tile-v" id="rd-b-acc"></div><div class="note">window accuracy, zero-shot</div><div class="cm" id="rd-cm-b"></div></div>
+    <div class="panel stack"><h3>RMS 3-level rule</h3><p class="sub">The 0.3 / 1.2 kPa thresholds from the report applied directly to the recordings.</p><div class="tile-v" id="rd-r-acc"></div><div class="note">window accuracy</div><div class="cm" id="rd-cm-r"></div></div>
+  </div>
+  <div class="panel stack">
+    <h3>Reading these numbers</h3>
+    <p class="sub" id="rd-read"></p>
+  </div>
+</section>
+
+<!-- ============================ METHOD ============================ -->
+<section class="view stack-lg" id="v-method" hidden>
+  <div class="stack" style="gap:6px"><div class="eyebrow">How the data and numbers were produced</div><h2>Method</h2></div>
+  <div class="grid g2">
+    <div class="panel stack">
+      <h3>1 · Data: a reduced-order combustor model</h3>
+      <p class="sub">No public dataset matches a 15-run φ-sweep of a swirl combustor with synchronised p′ and q′. So we simulate one acoustic mode as a noise-driven oscillator coupled to an n-τ flame, the standard low-order description of turbulent thermoacoustic systems.</p>
+      <div class="eq">da/dt = (ν + η(t)/(1+|a|²/a²<sub>lock</sub>)) a + c₃|a|²a − c₅|a|⁴a + σ ξ(t)</div>
+      <div class="eq">ν(φ) = β cos θ(φ) − α,&nbsp;&nbsp; θ = ω τ,&nbsp;&nbsp; τ ∝ 1/U</div>
+      <div class="eq">p′ = Re{a e<sup>iΦ</sup>} + harmonic + turbulence + 2nd mode</div>
+      <div class="eq">q′ = Re{a e<sup>i(Φ−θ)</sup>} + flame noise</div>
+      <p class="sub">Leaning the mixture by adding air shortens the flame delay τ, so θ slides from about 105° to 30°, cos θ turns positive, and the Rayleigh driving overtakes damping. η(t) is the turbulent fluctuation of flame gain (std s<sub>ν</sub> = 25 s⁻¹, 0.1 s correlation). It is what produces bursts before the mean growth rate turns positive. The subcritical terms make bursts grow quickly once started. The sensor sees p′ through a 0.5 ms waveguide, which the phase feature calibrates out.</p>
+    </div>
+    <div class="panel stack">
+      <h3>2 · Experiment design (matches report §4.2)</h3>
+      <div class="tablewrap"><table id="md-design" class="text"></table></div>
+      <h3 style="margin-top:6px">Ground-truth regime</h3>
+      <div class="tablewrap"><table>
+        <tr><th>Class</th><th>Condition on mean growth rate ν</th><th>Typical φ</th></tr>
+        <tr><td><span class="chip k0"><i></i>Stable</span></td><td style="text-align:right">ν &lt; −2 s<sub>ν</sub></td><td id="md-phi0"></td></tr>
+        <tr><td><span class="chip k1"><i></i>Transition</span></td><td style="text-align:right">−2 s<sub>ν</sub> ≤ ν &lt; 0</td><td id="md-phi1"></td></tr>
+        <tr><td><span class="chip k2"><i></i>Unstable</span></td><td style="text-align:right">ν ≥ 0</td><td id="md-phi2"></td></tr>
+      </table></div>
+      <p class="note">Labels come from the physics, not from loudness. That is what makes early warning a real prediction problem: a calm window inside the transition is still labelled Transition.</p>
+    </div>
+  </div>
+  <div class="grid g2">
+    <div class="panel stack">
+      <h3>3 · Models</h3>
+      <div class="tablewrap"><table id="md-models" class="text"></table></div>
+      <p class="note">Deep models are written in JAX/Flax and trained on CPU (AdamW, cosine schedule, 3000 steps). The CNN encoder is four strided 1-D convolutions with LayerNorm and GELU, followed by mean and max pooling.</p>
+    </div>
+    <div class="panel stack">
+      <h3>4 · Metrics</h3>
+      <ul class="sub" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
+        <li><b>Accuracy, macro-F1, recall</b>: window level, against the physics label.</li>
+        <li><b>False-alarm rate</b>: share of truly stable windows flagged as Transition or Unstable.</li>
+        <li><b>Operating point</b>: each probabilistic model raises "non-stable" only above a threshold chosen on the 2 validation runs so that at most 5% of stable windows are flagged.</li>
+        <li><b>Alarm</b>: on after 3 consecutive non-stable decisions (30 ms), off after 10 stable ones.</li>
+        <li><b>Full-instability onset</b>: first window where p′rms ≥ 1.2 kPa and stays there for 90% of the next 300 ms.</li>
+        <li><b>Warning time</b>: onset time minus the start of the alarm episode active at onset, counted from the true transition start at the earliest. Negative means the alarm came after onset.</li>
+        <li><b>Latency</b>: one decision on one CPU core, features included.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel stack">
+    <h3>5 · Limits of this study</h3>
+    <ul class="sub" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
+      <li>The main dataset is simulated. The model reproduces the known stable → intermittency → limit-cycle route, but its parameters are tuned to the report's numbers (210 Hz, 0.3 / 1.2 kPa, φ 0.90 → 0.55), not fitted to a specific rig.</li>
+      <li>The real-data check uses 42 short recordings from a public student project whose provenance is not documented. They have no flame-light channel and no time history, so lead time cannot be measured on them.</li>
+      <li>The flame-image 2D-CNN track from the report is not included: there are no camera frames to train on.</li>
+      <li>The Transition boundary sits at a point where bursts are still rare, so even a perfect detector cannot reach 100% window accuracy. Warning time and false alarms matter more than accuracy here.</li>
+    </ul>
+  </div>
+  <div class="panel stack">
+    <h3>6 · Reproduce</h3>
+    <pre class="code">python make_dataset.py        # 15 slow sweeps + 12 fast lean-outs, windows and features
+python train_classical.py     # RMS rules, SVM, Random Forest, window-length study
+python train_deep.py cnn      # 1D-CNN          (also: lstm_p, lstm_pq)
+python evaluate.py            # thresholds on validation, test metrics, quiet-gap analysis
+python real_check.py          # public recordings: in-domain CV + zero-shot transfer
+python export_web.py && python build_web.py   # this page</pre>
+  </div>
+</section>
+</main>
+<footer><div class="wrap">Harshvardhan Singh Chauhan (23AE30007) · Vedaant Gupta (23AE3AI46) · Pawan Sharma (23AE10024). Data: reduced-order thermoacoustic simulation (main study) and public combustor recordings (external check).</div></footer>
+<div class="tip" id="tip" hidden></div>
+
+<script>/*CORE*/</script>
+<script>/*DATA*/</script>
+<script>
+(() => {
+"use strict";
+const D = window.DATA, CI = window.CI;
+const $ = s => document.querySelector(s), $$ = s => Array.from(document.querySelectorAll(s));
+const CL = ["Stable", "Transition", "Unstable"];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const b64 = (s, T) => { const bin = atob(s); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return new T(u.buffer); };
+const fmtPct = (v, d = 1) => (v * 100).toFixed(d) + "%";
+const fmtMs = v => !isFinite(v) ? "never" : (Math.abs(v) >= 1000 ? (v / 1000).toFixed(2) + " s" : Math.round(v) + " ms");
+const el = (tag, attrs = {}, kids = []) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === "text") e.textContent = v; else if (k === "cls") e.className = v; else if (k === "style") e.setAttribute("style", v); else e.setAttribute(k, v); } for (const c of [].concat(kids)) if (c != null) e.append(c); return e; };
+const chip = (k, txt) => el("span", { cls: "chip k" + k }, [el("i"), document.createTextNode(txt ?? CL[k])]);
+const short = n => n.replace("Random Forest", "RF").replace(" (5 features)", "").replace("100 ms smoothing", "smoothing");
+const MODELS = D.models; const NAME = Object.fromEntries(MODELS.map(m => [m.key, m.name]));
+const SERIES = { svm: "--s1", rf: "--s2", rf_smooth: "--s3", cnn: "--s4", lstm_p: "--s5", lstm_pq: "--s6" };
+const BEST = MODELS.some(m => m.key === "lstm_pq") ? "lstm_pq" : "rf_smooth";
+
+// ---------- canvas helpers ----------
+function setup(cv) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth, h = +cv.getAttribute("height");
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + "px"; }
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  return { g, w, h };
+}
+function axes(g, box, xs, ys, o = {}) {
+  const { x0, y0, x1, y1 } = box; g.save();
+  g.font = "11px " + css("--f-mono"); g.fillStyle = css("--ink-3"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
+  for (const t of ys.ticks) { const y = ys.map(t); g.beginPath(); g.moveTo(x0, y + .5); g.lineTo(x1, y + .5); g.stroke(); g.textAlign = "right"; g.textBaseline = "middle"; g.fillText(ys.fmt ? ys.fmt(t) : t, x0 - 6, y); }
+  for (const t of xs.ticks) { const x = xs.map(t); g.textAlign = "center"; g.textBaseline = "top"; g.fillText(xs.fmt ? xs.fmt(t) : t, x, y1 + 6); }
+  g.strokeStyle = css("--line"); g.beginPath(); g.moveTo(x0, y1 + .5); g.lineTo(x1, y1 + .5); g.stroke();
+  g.font = "11.5px " + css("--f-body"); g.fillStyle = css("--ink-3");
+  if (o.xl) { g.textAlign = "center"; g.textBaseline = "bottom"; g.fillText(o.xl, (x0 + x1) / 2, box.H - 2); }
+  if (o.yl) { g.save(); g.translate(11, (y0 + y1) / 2); g.rotate(-Math.PI / 2); g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(o.yl, 0, 0); g.restore(); }
+  g.restore();
+}
+const lin = (d0, d1, r0, r1) => v => r0 + (v - d0) / (d1 - d0) * (r1 - r0);
+const ticks = (a, b, n) => { const s = (b - a) / n, m = Math.pow(10, Math.floor(Math.log10(s))), st = [1, 2, 2.5, 5, 10].map(x => x * m).find(x => x >= s); const out = []; for (let v = Math.ceil(a / st) * st; v <= b + 1e-9; v += st) out.push(+v.toFixed(10)); return out; };
+const tip = $("#tip");
+function showTip(e, nodes) { tip.replaceChildren(...nodes); tip.hidden = false; const r = tip.getBoundingClientRect(); let x = e.clientX + 14, y = e.clientY + 14; if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14; if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14; tip.style.left = x + "px"; tip.style.top = y + "px"; }
+const hideTip = () => { tip.hidden = true; };
+const tipRow = (color, val, label) => el("div", {}, [color ? el("span", { cls: "ln", style: "background:" + color }) : null, el("b", { text: val }), document.createTextNode(" "), el("span", { cls: "k", text: label })]);
+
+// ---------- routing ----------
+const VIEWS = ["overview", "replay", "simulator", "results", "realdata", "method"];
+const drawn = {};
+function route() {
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview";
+  for (const n of VIEWS) $("#v-" + n).hidden = n !== v;
+  $$("nav.tabs a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v ? "page" : "false"));
+  if (v !== "simulator") Sim.stop(); else Sim.start();
+  if (v !== "replay") Replay.pause();
+  requestAnimationFrame(() => (RENDER[v] || (() => {}))());
+}
+$$("[data-go]").forEach(b => b.addEventListener("click", () => { location.hash = b.dataset.go; }));
+addEventListener("hashchange", route);
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(route, 120); });
+
+// ---------- results lookups ----------
+const rows = (op, scn) => D.summary[op][scn];
+const rowOf = (op, scn, key) => rows(op, scn).find(r => r.model === NAME[key]);
+
+// =============================== OVERVIEW ===============================
+const OV = { regs: [], i: 0, t0: 0 };
+(function prepOverview() {
+  // three 2-s excerpts from held-out slow run, one per regime
+  const R = D.replay.find(r => r.kind === "ramp");
+  const p = b64(R.p, Int16Array), y = b64(R.y, Uint8Array), phi = b64(R.phi, Int16Array), rms = b64(R.rms, Int16Array);
+  const pick = (cls, want) => { let best = -1, bd = 1e9; for (let i = 0; i < y.length - 250; i++) if (y[i] === cls) { const d = Math.abs(phi[i] / 1e4 - want); if (d < bd) { bd = d; best = i; } } return best; };
+  for (const [c, want] of [[0, 0.86], [1, 0.69], [2, 0.6]]) {
+    const wi = pick(c, want); const s = Math.round(wi * 0.01 * 2500);
+    OV.regs.push({ c, phi: phi[wi] / 1e4, data: p.subarray(s, s + 5000) });
+  }
+  const box = $("#ov-regs"); OV.regs.forEach((r, i) => { const c = chip(r.c); c.style.cursor = "pointer"; c.addEventListener("click", () => { OV.i = i; OV.t0 = performance.now(); }); box.append(c); });
+})();
+function drawScope() {
+  if ($("#v-overview").hidden) return requestAnimationFrame(drawScope);
+  const cv = $("#ov-scope"), { g, w, h } = setup(cv);
+  const now = performance.now(); if (!OV.t0) OV.t0 = now;
+  let el_ = (now - OV.t0) / 1000; if (el_ > 4) { OV.i = (OV.i + 1) % 3; OV.t0 = now; el_ = 0; }
+  const R = OV.regs[OV.i], span = 750, start = Math.floor(el_ / 4 * (R.data.length - span));
+  const ys = lin(-3.2, 3.2, h - 6, 6);
+  g.strokeStyle = css("--grid"); g.lineWidth = 1; for (const v of [-2, 0, 2]) { g.beginPath(); g.moveTo(0, ys(v) + .5); g.lineTo(w, ys(v) + .5); g.stroke(); }
+  g.strokeStyle = css(["--c0", "--c1", "--c2"][R.c]); g.lineWidth = 1.5; g.beginPath();
+  for (let i = 0; i < span; i++) { const x = i / (span - 1) * w, v = R.data[start + i] / 1000; i ? g.lineTo(x, ys(v)) : g.moveTo(x, ys(v)); }
+  g.stroke();
+  $("#ov-reg-name").textContent = CL[R.c]; $("#ov-phi").textContent = "φ = " + R.phi.toFixed(2);
+  $$("#ov-regs .chip").forEach((c, i) => c.style.outline = i === OV.i ? "2px solid " + css("--ink-3") : "none");
+  requestAnimationFrame(drawScope);
+}
+function renderOverview() {
+  const best = rowOf("tuned", "fast", BEST), rule = rowOf("tuned", "fast", "rms_rule"), danger = rowOf("tuned", "fast", "rms_danger"), bestS = rowOf("tuned", "test", BEST);
+  const T = $("#ov-tiles"); T.replaceChildren();
+  const tile = (v, l, c) => el("div", {}, [el("div", { cls: "tile-v", text: v }), el("div", { cls: "tile-l", text: l }), el("div", { cls: "tile-c", text: c })]);
+  T.append(
+    tile(fmtMs(best.lead_ms_median), "median warning, fast lean-outs", `${NAME[BEST]} · RMS rule ${fmtMs(rule.lead_ms_median)} · danger alarm ${fmtMs(danger.lead_ms_median)}`),
+    tile(fmtPct(best.pct_runs_lead_ge_valve, 0), "of fast runs warned ≥ 40 ms early", `enough time for the fuel valve · worst run ${fmtMs(best.lead_ms_min)}`),
+    tile(fmtPct(bestS.recall[1], 0), "of transition windows caught", `slow sweeps, at ${fmtPct(bestS.false_alarm_rate)} false alarms · RMS rule ${fmtPct(rowOf("tuned", "test", "rms_rule").recall[1], 0)}`),
+    tile((best.latency_ms ?? 0).toFixed(1) + " ms", "per decision on one CPU core", "a new window arrives every 10 ms"));
+  // rayleigh
+  const RB = $("#ov-rayleigh"); RB.replaceChildren();
+  for (const [i, r] of D.rayleigh.entries()) {
+    const w = Math.max(0, r.mean) / 0.8 * 100;
+    const bar = el("div", { cls: "b" }, [el("i", { style: `width:${w}%;background:var(--c${i})` })]);
+    RB.append(el("div", { cls: "r" }, [el("span", {}, [chip(i)]), bar, el("span", { cls: "mono", style: "text-align:right", text: (r.mean >= 0 ? "+" : "") + r.mean.toFixed(2) })]));
+  }
+  drawBif();
+}
+function drawBif() {
+  const cv = $("#ov-bif"), { g, w, h } = setup(cv);
+  if (!drawBif.pts) { const B = D.bif; drawBif.pts = { phi: b64(B.phi, Int16Array), rms: b64(B.rms, Int16Array), y: b64(B.y, Uint8Array) }; }
+  const P = drawBif.pts, box = { x0: 46, x1: w - 10, y0: 10, y1: h - 40, H: h };
+  const xs = lin(0.905, 0.545, box.x0, box.x1), ys = lin(0, 2.6, box.y1, box.y0);
+  // regime bands (median boundaries)
+  const ramps = D.runs.filter(r => r.kind === "ramp"); const med = a => a.slice().sort((x, y) => x - y)[a.length >> 1];
+  const bST = med(ramps.map(r => r.phi_ST)), bTU = med(ramps.map(r => r.phi_TU));
+  g.globalAlpha = .07; g.fillStyle = css("--c1"); g.fillRect(xs(bST), box.y0, xs(bTU) - xs(bST), box.y1 - box.y0); g.globalAlpha = 1;
+  axes(g, box, { ticks: [0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55], map: xs, fmt: v => v.toFixed(2) }, { ticks: [0, 0.5, 1, 1.5, 2, 2.5], map: ys, fmt: v => v.toFixed(1) }, { xl: "equivalence ratio φ (leaner →)", yl: "p′ RMS (kPa)" });
+  const cols = [css("--c0"), css("--c1"), css("--c2")];
+  for (const c of [0, 2, 1]) { g.fillStyle = cols[c]; g.globalAlpha = c === 1 ? .55 : .35; for (let i = 0; i < P.y.length; i++) if (P.y[i] === c) g.fillRect(xs(P.phi[i] / 1e4) - 1.2, ys(P.rms[i] / 1000) - 1.2, 2.4, 2.4); }
+  g.globalAlpha = 1; g.setLineDash([4, 4]); g.strokeStyle = css("--ink-3");
+  for (const v of [0.3, 1.2]) { g.beginPath(); g.moveTo(box.x0, ys(v)); g.lineTo(box.x1, ys(v)); g.stroke(); }
+  g.setLineDash([]); g.font = "11px " + css("--f-mono"); g.fillStyle = css("--ink-2"); g.textAlign = "left";
+  g.fillText("0.3 kPa", box.x0 + 4, ys(0.3) - 5); g.fillText("1.2 kPa (report's danger level)", box.x0 + 4, ys(1.2) - 5);
+  g.textAlign = "center"; g.fillText("transition band", (xs(bST) + xs(bTU)) / 2, box.y0 + 12);
+  const L = $("#bif-legend"); L.replaceChildren(...[0, 1, 2].map(c => el("span", {}, [el("i", { cls: "box", style: `background:var(--c${c})` }), document.createTextNode(CL[c])])), el("span", {}, [el("i", { style: "background:var(--ink-3)" }), document.createTextNode("report's RMS thresholds")]));
+  cv.onpointermove = e => { const r = cv.getBoundingClientRect(), x = e.clientX - r.left; if (x < box.x0 || x > box.x1) return hideTip(); const phi = 0.905 + (x - box.x0) / (box.x1 - box.x0) * (0.545 - 0.905);
+    let n = [0, 0, 0], s = 0, k = 0; for (let i = 0; i < P.y.length; i++) if (Math.abs(P.phi[i] / 1e4 - phi) < 0.005) { n[P.y[i]]++; s += P.rms[i] / 1000; k++; }
+    if (!k) return hideTip(); showTip(e, [el("div", { cls: "k", text: "φ ≈ " + phi.toFixed(3) }), tipRow(null, (s / k).toFixed(2) + " kPa", "mean p′ RMS"), ...[0, 1, 2].filter(c => n[c]).map(c => tipRow(cols[c], fmtPct(n[c] / k, 0), CL[c]))]); };
+  cv.onpointerleave = hideTip;
+}
+
+// =============================== REPLAY ===============================
+const Replay = (() => {
+  const st = { run: null, a: "rms_rule", b: BEST, t: 0, playing: false, speed: 1, layer: "env", last: 0 };
+  const cache = {};
+  function dec(R) {
+    if (cache[R.id]) return cache[R.id];
+    const o = { p: b64(R.p, Int16Array), q: b64(R.q, Int16Array), phi: b64(R.phi, Int16Array), y: b64(R.y, Uint8Array), rms: b64(R.rms, Int16Array), pred: {}, pns: {}, alarm: {} };
+    for (const k in R.pred) { o.pred[k] = b64(R.pred[k], Uint8Array); o.alarm[k] = b64(R.alarm[k], Uint8Array); }
+    for (const k in R.pns) o.pns[k] = b64(R.pns[k], Uint8Array);
+    const S = R.spec; o.spec = { ...S, z: b64(S.z, Uint8Array) }; o.specImg = null;
+    return (cache[R.id] = o);
+  }
+  const runSel = $("#rp-run"), aSel = $("#rp-a"), bSel = $("#rp-b");
+  const g1 = el("optgroup", { label: "Slow sweeps (30 s, held out)" }), g2 = el("optgroup", { label: "Fast lean-outs (unseen dynamics)" });
+  for (const R of D.replay) (R.kind === "ramp" ? g1 : g2).append(el("option", { value: R.id, text: R.kind === "ramp" ? `Run ${R.id} · 30 s sweep φ 0.90 → 0.55` : `Run ${R.id} · ${(R.duration - 2.5).toFixed(1)} s lean-out` }));
+  runSel.append(g2, g1);
+  for (const s of [aSel, bSel]) for (const m of MODELS) s.append(el("option", { value: m.key, text: m.name }));
+  aSel.value = st.a; bSel.value = st.b;
+  const SP = [0.25, 0.5, 1, 2, 5]; const spBox = $("#rp-speed");
+  for (const s of SP) { const b = el("button", { "aria-pressed": s === 1 ? "true" : "false", text: s + "×" }); b.onclick = () => { st.speed = s; spBox.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); }; spBox.append(b); }
+  $$("#rp-layer button").forEach(b => b.onclick = () => { st.layer = b.dataset.l; $$("#rp-layer button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); draw(); });
+  function pick(id) { st.run = D.replay.find(r => r.id === +id); st.t = st.run.kind === "ramp" ? 8 : 0.4; draw(); }
+  runSel.onchange = () => pick(runSel.value);
+  aSel.onchange = () => { st.a = aSel.value; draw(); }; bSel.onchange = () => { st.b = bSel.value; draw(); };
+  const playBtn = $("#rp-play");
+  playBtn.onclick = () => st.playing ? pause() : play();
+  function play() { if (st.t >= st.run.duration - 0.06) st.t = 0.4; st.playing = true; playBtn.textContent = "Pause"; st.last = performance.now(); requestAnimationFrame(tick); }
+  function pause() { st.playing = false; playBtn.textContent = "Play"; }
+  function tick(now) { if (!st.playing) return; const dt = Math.min(0.1, (now - st.last) / 1000); st.last = now; st.t += dt * st.speed; if (st.t >= st.run.duration - 0.05) { st.t = st.run.duration - 0.05; pause(); } draw(); requestAnimationFrame(tick); }
+  const tl = $("#rp-timeline");
+  tl.addEventListener("click", e => { const r = tl.getBoundingClientRect(); const f = (e.clientX - r.left - 70) / (r.width - 80); st.t = Math.max(0.06, Math.min(st.run.duration - 0.05, f * st.run.duration)); draw(); });
+
+  function card(box, key, o, wi) {
+    box.replaceChildren();
+    const pred = o.pred[key][wi], al = o.alarm[key][wi], lead = st.run.lead[key];
+    box.append(el("div", { cls: "row spread" }, [el("span", { cls: "name", text: NAME[key] }), chip(pred)]));
+    if (o.pns[key]) { const pn = o.pns[key][wi] / 255, tau = D.summary.tau[key];
+      box.append(el("div", { cls: "row spread note" }, [el("span", { text: "P(not stable)" }), el("span", { cls: "mono", text: fmtPct(pn, 0) + " · threshold " + fmtPct(tau, 0) })]),
+        el("div", { cls: "meter" }, [el("i", { style: `width:${pn * 100}%;background:${pn > tau ? css("--c1") : css("--ink-3")}` }), el("u", { style: `left:${tau * 100}%` })])); }
+    box.append(el("div", { cls: "row" }, [el("span", { cls: "chip " + (al ? "alarm-on" : "alarm-off") }, [el("i"), document.createTextNode(al ? "Alarm on" : "Alarm off")])]));
+    const on = st.run.onset_idx;
+    if (on >= 0 && wi >= on && lead !== undefined) {
+      const ok = lead >= 40;
+      box.append(el("div", { cls: "verdict" }, lead > 0 ? [document.createTextNode("Alarm was up "), el("b", { text: fmtMs(lead) }), document.createTextNode(" before full instability. " + (ok ? "Enough for the 40 ms valve." : "Shorter than the 40 ms valve needs."))]
+        : [document.createTextNode("Alarm came "), el("b", { text: isFinite(lead) ? fmtMs(-lead) : "never" }), document.createTextNode(isFinite(lead) ? " after full instability." : "")]));
+    } else box.append(el("div", { cls: "verdict note", text: on >= 0 ? `Full instability arrives at ${(on * 0.01 + 0.05).toFixed(2)} s.` : "No full instability in this run." }));
+  }
+
+  function draw() {
+    if (!st.run) return;
+    const R = st.run, o = dec(R), fs = R.fs_plot;
+    const wi = Math.max(0, Math.min(R.n - 1, Math.round((st.t - 0.05) / 0.01)));
+    // scope
+    { const cv = $("#rp-scope"), { g, w, h } = setup(cv); const span = Math.round(0.4 * fs), end = Math.min(o.p.length, Math.round(st.t * fs)), s0 = Math.max(0, end - span);
+      const top = { y0: 8, y1: h * 0.66 }, bot = { y0: h * 0.7, y1: h - 4 };
+      const ys = lin(-3.2, 3.2, top.y1, top.y0), yq = lin(-4, 4, bot.y1, bot.y0);
+      g.font = "10.5px " + css("--f-mono"); g.fillStyle = css("--ink-3"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
+      for (const v of [-2, -1, 0, 1, 2]) { g.beginPath(); g.moveTo(34, ys(v) + .5); g.lineTo(w, ys(v) + .5); g.stroke(); g.textAlign = "right"; g.textBaseline = "middle"; g.fillText(v, 28, ys(v)); }
+      // window being classified (last 50 ms)
+      const xw = i => 34 + (i - (end - span)) / span * (w - 34);
+      g.fillStyle = css("--panel-2"); g.fillRect(xw(end - 0.05 * fs), top.y0, xw(end) - xw(end - 0.05 * fs), bot.y1 - top.y0);
+      g.fillStyle = css("--ink-3"); g.textAlign = "right"; g.textBaseline = "top"; g.fillText("50 ms window", w - 4, top.y0);
+      for (const [arr, col, yy, lw] of [[o.q, css("--trace-q"), yq, 1], [o.p, css("--trace"), ys, 1.4]]) {
+        g.strokeStyle = col; g.lineWidth = lw; g.beginPath();
+        for (let i = s0; i < end; i++) { const x = xw(i), v = arr[i] / 1000; i === s0 ? g.moveTo(x, yy(v)) : g.lineTo(x, yy(v)); } g.stroke(); }
+    }
+    // timeline
+    { const cv = tl, { g, w, h } = setup(cv); const x0 = 70, x1 = w - 10, xs = lin(0, R.duration, x0, x1);
+      const lane = (y, hh, arr, label) => { g.fillStyle = css("--ink-2"); g.font = "11px " + css("--f-body"); g.textAlign = "right"; g.textBaseline = "middle"; g.fillText(label, x0 - 6, y + hh / 2);
+        const cols = [css("--c0"), css("--c1"), css("--c2")]; let s = 0;
+        for (let i = 1; i <= arr.length; i++) if (i === arr.length || arr[i] !== arr[s]) { g.fillStyle = cols[arr[s]]; g.fillRect(xs(s * 0.01 + 0.05), y, Math.max(1, xs(i * 0.01 + 0.05) - xs(s * 0.01 + 0.05)), hh); s = i; } };
+      const alarmLane = (y, arr) => { g.fillStyle = css("--crit"); let s = -1; for (let i = 0; i <= arr.length; i++) { const on = i < arr.length && arr[i]; if (on && s < 0) s = i; if (!on && s >= 0) { g.fillRect(xs(s * 0.01 + 0.05), y, Math.max(1, xs(i * 0.01 + 0.05) - xs(s * 0.01 + 0.05)), 5); s = -1; } } };
+      const envTop = 6, envBot = 150;
+      if (st.layer === "spec") {
+        const S = o.spec; if (!o.specImg) { const c = document.createElement("canvas"); c.width = S.nt; c.height = S.nf; const cg = c.getContext("2d"), im = cg.createImageData(S.nt, S.nf);
+          const lo = [247, 251, 255], hi = [8, 48, 107]; const dark = matchMedia("(prefers-color-scheme: dark)").matches && document.documentElement.dataset.theme !== "light" || document.documentElement.dataset.theme === "dark";
+          const A = dark ? [23, 28, 38] : lo, Bc = dark ? [190, 215, 250] : hi;
+          for (let t = 0; t < S.nt; t++) for (let f = 0; f < S.nf; f++) { const v = S.z[t * S.nf + f] / 255, k = ((S.nf - 1 - f) * S.nt + t) * 4; for (let c3 = 0; c3 < 3; c3++) im.data[k + c3] = A[c3] + (Bc[c3] - A[c3]) * Math.pow(v, 1.4); im.data[k + 3] = 255; }
+          cg.putImageData(im, 0, 0); o.specImg = c; }
+        g.imageSmoothingEnabled = false; g.drawImage(o.specImg, xs(S.t0), envTop, xs(S.t0 + S.nt * S.dt) - xs(S.t0), envBot - envTop);
+        g.fillStyle = css("--ink-3"); g.font = "10.5px " + css("--f-mono"); g.textAlign = "right"; g.textBaseline = "middle";
+        for (const f of [0, 200, 400, 600, 800]) g.fillText(f + " Hz", x0 - 6, envBot - f / S.fmax * (envBot - envTop));
+      } else {
+        const ys = lin(0, 2.6, envBot, envTop); g.strokeStyle = css("--grid"); g.lineWidth = 1; g.fillStyle = css("--ink-3"); g.font = "10.5px " + css("--f-mono"); g.textAlign = "right"; g.textBaseline = "middle";
+        for (const v of [0, 1, 2]) { g.beginPath(); g.moveTo(x0, ys(v) + .5); g.lineTo(x1, ys(v) + .5); g.stroke(); g.fillText(v + " kPa", x0 - 6, ys(v)); }
+        g.setLineDash([3, 3]); g.strokeStyle = css("--ink-3"); for (const v of [0.3, 1.2]) { g.beginPath(); g.moveTo(x0, ys(v)); g.lineTo(x1, ys(v)); g.stroke(); } g.setLineDash([]);
+        g.strokeStyle = css("--trace"); g.lineWidth = 1; g.beginPath(); for (let i = 0; i < R.n; i++) { const x = xs(i * 0.01 + 0.05), y = ys(o.rms[i] / 1000); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke();
+        // phi axis on the right? show phi labels along bottom of envelope
+      }
+      let y = envBot + 12;
+      lane(y, 18, o.y, "True regime"); y += 30;
+      lane(y, 18, o.pred[st.a], "A"); alarmLane(y + 21, o.alarm[st.a]); y += 36;
+      lane(y, 18, o.pred[st.b], "B"); alarmLane(y + 21, o.alarm[st.b]); y += 36;
+      g.fillStyle = css("--ink-3"); g.font = "10.5px " + css("--f-mono"); g.textAlign = "center"; g.textBaseline = "top";
+      const step = R.duration > 10 ? 5 : 1; for (let t = 0; t <= R.duration + 1e-6; t += step) g.fillText(t + " s", xs(t), y - 2);
+      if (R.onset_idx >= 0) { const xo = xs(R.onset_idx * 0.01 + 0.05); g.strokeStyle = css("--ink"); g.lineWidth = 2; g.beginPath(); g.moveTo(xo, envTop); g.lineTo(xo, y - 6); g.stroke(); }
+      const xp = xs(st.t); g.strokeStyle = css("--focus"); g.lineWidth = 2; g.beginPath(); g.moveTo(xp, envTop - 4); g.lineTo(xp, y - 6); g.stroke();
+      g.fillStyle = css("--focus"); g.beginPath(); g.moveTo(xp - 5, envTop - 6); g.lineTo(xp + 5, envTop - 6); g.lineTo(xp, envTop); g.fill();
+    }
+    $("#rp-t").textContent = st.t.toFixed(2) + " s"; $("#rp-phi").textContent = (o.phi[wi] / 1e4).toFixed(3); $("#rp-rms").textContent = (o.rms[wi] / 1000).toFixed(2) + " kPa";
+    $("#rp-true").replaceChildren(chip(o.y[wi]));
+    card($("#rp-card-a"), st.a, o, wi); card($("#rp-card-b"), st.b, o, wi);
+  }
+  pick(runSel.value);
+  return { draw, pause, st };
+})();
+
+// =============================== SIMULATOR ===============================
+const Sim = (() => {
+  const forest = new CI.Forest(D.forest);
+  const N = 10000; const bufP = new Float32Array(N), bufQ = new Float32Array(N); let w = 0, filled = 0;
+  let sim, running = false, paused = false, raf = 0, last = 0, ramp = null, acc = 0, sinceWin = 0, pred = [], alarm = { on: false, hi: 0, lo: 0 }, hist = [], lastFeat = null, lastProb = [1, 0, 0], info = {};
+  const tmpP = new Float32Array(400), tmpQ = new Float32Array(400);
+  const phiIn = $("#sm-phi"), flowIn = $("#sm-flow"), turbIn = $("#sm-turb");
+  function reset() { sim = new CI.Combustor({ flow_factor: +flowIn.value, s_nu: +turbIn.value }, (Math.random() * 1e9) | 0); sim.phi = +phiIn.value; bufP.fill(0); bufQ.fill(0); w = 0; filled = 0; hist = []; alarm = { on: false, hi: 0, lo: 0 }; ramp = null; $("#sm-ramp").textContent = "Auto lean-out (20 s)"; }
+  phiIn.oninput = () => { sim.phi = +phiIn.value; ramp = null; $("#sm-ramp").textContent = "Auto lean-out (20 s)"; };
+  flowIn.oninput = () => { sim.P.flow_factor = +flowIn.value; $("#sm-flow-v").textContent = (+flowIn.value).toFixed(2); };
+  turbIn.oninput = () => { sim.P.s_nu = +turbIn.value; $("#sm-turb-v").textContent = turbIn.value; };
+  $("#sm-ramp").onclick = () => { if (ramp) { ramp = null; $("#sm-ramp").textContent = "Auto lean-out (20 s)"; return; } phiIn.value = 0.88; sim.phi = 0.88; ramp = { t: 0 }; $("#sm-ramp").textContent = "Stop lean-out"; };
+  $("#sm-pause").onclick = () => { paused = !paused; $("#sm-pause").textContent = paused ? "Resume" : "Pause"; if (!paused) last = performance.now(); };
+  $("#sm-reset").onclick = () => { phiIn.value = 0.88; reset(); };
+  $("#sm-forest-note").textContent = `Browser forest: 60 trees, depth ≤ 10, threshold ${fmtPct(D.forest.tau, 0)} (≤ 5% false alarms on validation). Held-out accuracy ${fmtPct(D.forest.test_acc_tuned)}.`;
+  const probBox = $("#sm-probs"), featBox = $("#sm-feats");
+  const FL = ["RMS p′", "Kurtosis", "FFT peak ratio", "Zero-crossing regularity", "Phase lag Δθ"], FU = [" kPa", "", "", "", "°"], FMAX = [2.6, 8, 1, 2.4, 180], FD = [2, 2, 2, 2, 0];
+  function loop(now) {
+    if (!running) return;
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (!paused) {
+      if (ramp) { ramp.t += dt; const ph = 0.88 - (0.88 - 0.56) * Math.min(1, ramp.t / 20); sim.phi = ph; phiIn.value = ph; if (ramp.t >= 20) { ramp = null; $("#sm-ramp").textContent = "Auto lean-out (20 s)"; } }
+      acc += dt * 10000; let n = Math.floor(acc); acc -= n;
+      while (n > 0) { const k = Math.min(n, 100 - sinceWin);
+        info = sim.run(k, tmpP, tmpQ);
+        for (let i = 0; i < k; i++) { bufP[w] = tmpP[i]; bufQ[w] = tmpQ[i]; w = (w + 1) % N; } filled = Math.min(N, filled + k);
+        sinceWin += k; n -= k;
+        if (sinceWin >= 100) { sinceWin = 0; if (filled >= 500) classify(); } }
+    }
+    draw(); raf = requestAnimationFrame(loop);
+  }
+  function lastN(buf, n) { const out = new Float32Array(n); for (let i = 0; i < n; i++) out[i] = buf[(w - n + i + N) % N]; return out; }
+  function classify() {
+    const r = CI.features(lastN(bufP, 500), lastN(bufQ, 500)); lastFeat = r; lastProb = forest.proba(r.F); const d = forest.decide(lastProb);
+    if (d >= 1) { alarm.hi++; alarm.lo = 0; } else { alarm.lo++; alarm.hi = 0; }
+    if (!alarm.on && alarm.hi >= 3) alarm.on = true; else if (alarm.on && alarm.lo >= 10) alarm.on = false;
+    hist.push([sim.regime(sim.phi), d, alarm.on ? 1 : 0]); if (hist.length > 2000) hist.shift();
+  }
+  function draw() {
+    $("#sm-phi-v").textContent = sim.phi.toFixed(3);
+    const th = sim.thetaDeg(sim.phi), drive = sim.P.beta * Math.cos(th * Math.PI / 180), nu = drive - sim.P.alpha, reg = sim.regime(sim.phi);
+    $("#sm-theta").textContent = th.toFixed(1) + "°"; $("#sm-drive").textContent = drive.toFixed(1) + " s⁻¹"; $("#sm-alpha").textContent = sim.P.alpha.toFixed(1) + " s⁻¹";
+    $("#sm-nu").textContent = (nu >= 0 ? "+" : "") + nu.toFixed(1) + " s⁻¹"; $("#sm-nuT").textContent = (-2 * sim.P.s_nu).toFixed(0) + " s⁻¹"; $("#sm-true").replaceChildren(chip(reg));
+    { const cv = $("#sm-scope"), { g, w: W, h } = setup(cv); const n = 3000, P = lastN(bufP, n), Q = lastN(bufQ, n);
+      const ys = lin(-3.2, 3.2, h * 0.68, 6), yq = lin(-4, 4, h - 4, h * 0.72);
+      g.strokeStyle = css("--grid"); g.lineWidth = 1; g.font = "10.5px " + css("--f-mono"); g.fillStyle = css("--ink-3"); g.textAlign = "right"; g.textBaseline = "middle";
+      for (const v of [-2, 0, 2]) { g.beginPath(); g.moveTo(30, ys(v) + .5); g.lineTo(W, ys(v) + .5); g.stroke(); g.fillText(v, 24, ys(v)); }
+      const xw = i => 30 + i / (n - 1) * (W - 30);
+      g.fillStyle = css("--panel-2"); g.fillRect(xw(n - 500), 6, W - xw(n - 500), h - 10);
+      for (const [A, col, yy, lw] of [[Q, css("--trace-q"), yq, 1], [P, css("--trace"), ys, 1.3]]) { g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); for (let i = 0; i < n; i += 2) { const x = xw(i), y = yy(A[i]); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); }
+    }
+    if (lastFeat) {
+      probBox.replaceChildren(...[0, 1, 2].map(c => el("div", { cls: "r" }, [chip(c), el("div", { cls: "meter" }, [el("i", { style: `width:${lastProb[c] * 100}%;background:var(--c${c})` })]), el("span", { cls: "mono", style: "text-align:right", text: fmtPct(lastProb[c], 0) })])));
+      featBox.replaceChildren(...lastFeat.F.map((v, j) => el("div", { cls: "featrow" }, [el("span", { text: FL[j] }), el("span", { cls: "mono", style: "text-align:right", text: v.toFixed(FD[j]) + FU[j] }), el("div", { cls: "meter" }, [el("i", { style: `width:${Math.min(100, Math.max(0, v / FMAX[j] * 100))}%` })])])));
+      const A = $("#sm-alarm"); A.className = "chip " + (alarm.on ? "alarm-on" : "alarm-off"); A.lastChild.textContent = alarm.on ? "Alarm on" : "Alarm off";
+      $("#sm-fpk").textContent = "peak " + lastFeat.fpk.toFixed(0) + " Hz";
+      const cv = $("#sm-spec"), { g, w: W, h } = setup(cv); const psd = lastFeat.psd, mx = Math.max(...psd);
+      const db = Array.from(psd, v => 10 * Math.log10(v / mx + 1e-9)), xs = lin(0, psd.length * lastFeat.df, 30, W - 18), ys = lin(-60, 0, h - 20, 6);
+      g.strokeStyle = css("--grid"); g.fillStyle = css("--ink-3"); g.font = "10.5px " + css("--f-mono"); g.textAlign = "right"; g.textBaseline = "middle";
+      for (const v of [0, -20, -40, -60]) { g.beginPath(); g.moveTo(30, ys(v) + .5); g.lineTo(W - 6, ys(v) + .5); g.stroke(); g.fillText(v, 26, ys(v)); }
+      g.textAlign = "center"; g.textBaseline = "top"; for (const f of [0, 250, 500, 750, 1000]) g.fillText(f, xs(f), h - 16);
+      g.strokeStyle = css("--trace"); g.lineWidth = 1.5; g.beginPath(); db.forEach((v, k) => { const x = xs(k * lastFeat.df), y = ys(Math.max(-60, v)); k ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+    }
+    { const cv = $("#sm-hist"), { g, w: W, h } = setup(cv); const cols = [css("--c0"), css("--c1"), css("--c2")], n = 2000, bw = (W - 8) / n;
+      hist.forEach((r, i) => { const x = 4 + (n - hist.length + i) * bw; g.fillStyle = cols[r[0]]; g.fillRect(x, 10, bw + .6, 40); g.fillStyle = cols[r[1]]; g.fillRect(x, 60, bw + .6, 40); if (r[2]) { g.fillStyle = css("--crit"); g.fillRect(x, 106, bw + .6, 6); } });
+      g.fillStyle = css("--ink-3"); g.font = "10.5px " + css("--f-mono"); g.textAlign = "left"; g.textBaseline = "top"; g.fillText("true regime", 6, 122); g.fillText("RF decision · red = alarm", 6, 136); g.textAlign = "right"; g.fillText("now", W - 4, 122); }
+  }
+  reset();
+  return { start() { if (running) return; running = true; last = performance.now(); raf = requestAnimationFrame(loop); }, stop() { running = false; cancelAnimationFrame(raf); } };
+})();
+
+// =============================== RESULTS ===============================
+const RS = { scn: "fast", op: "tuned", cm: BEST, feat: 0 };
+function segBind(id, key) { $$(`#${id} button`).forEach(b => b.onclick = () => { RS[key] = b.dataset.v; $$(`#${id} button`).forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false")); renderResults(); }); }
+segBind("rs-scn", "scn"); segBind("rs-op", "op");
+for (const m of MODELS) $("#rs-cm-model").append(el("option", { value: m.key, text: m.name }));
+$("#rs-cm-model").value = RS.cm; $("#rs-cm-model").onchange = e => { RS.cm = e.target.value; renderCM(); };
+D.hists.forEach((f, i) => $("#rs-feat").append(el("option", { value: i, text: f.label })));
+$("#rs-feat").onchange = e => { RS.feat = +e.target.value; drawHist(); };
+
+function renderResults() {
+  const R = rows(RS.op, RS.scn);
+  $("#rs-table-title").textContent = (RS.scn === "fast" ? "Fast lean-outs, 12 runs" : "Slow sweeps, 2 held-out runs") + " · " + (RS.op === "tuned" ? "thresholds set for ≤ 5% false alarms" : "plain argmax");
+  const T = $("#rs-table"); T.replaceChildren();
+  T.append(el("tr", {}, ["Detector", "Accuracy", "Macro-F1", "Transition caught", "False alarms", "Warning, median", "Warning, worst run", "Runs ≥ 40 ms", "Latency"].map(t => el("th", { text: t }))));
+  const ml = R.filter(r => r.kind === "ml"); const bestKey = ml.length ? ml.reduce((a, b) => (b.lead_ms_median > a.lead_ms_median && b.false_alarm_rate <= 0.06 ? b : a)).model : null;
+  for (const r of R) T.append(el("tr", { cls: r.kind === "rule" ? "rule" : (r.model === NAME[BEST] ? "best" : "") }, [
+    el("td", { text: r.model }), el("td", { text: fmtPct(r.accuracy) }), el("td", { text: r.macro_f1.toFixed(3) }), el("td", { text: fmtPct(r.recall[1], 0) }),
+    el("td", { text: fmtPct(r.false_alarm_rate) }), el("td", { text: fmtMs(r.lead_ms_median) }), el("td", { text: fmtMs(r.lead_ms_min) }),
+    el("td", { text: Math.round(r.pct_runs_lead_ge_valve * Object.keys(r.per_run).length) + " / " + Object.keys(r.per_run).length }),
+    el("td", { text: r.latency_ms == null ? "–" : (r.latency_ms < 0.1 ? "< 0.1 ms" : r.latency_ms.toFixed(2) + " ms") })]));
+  $("#rs-table-note").textContent = RS.op === "tuned" ? "Thresholds were chosen on the two validation runs only. The RMS rules have no threshold to tune and appear unchanged in both modes." : "Plain argmax over-flags stable windows (high false-alarm rate), which inflates both transition recall and warning time.";
+  drawLead(); drawGap(); drawTrade(); renderFarD(); renderCM(); drawHist(); renderImp(); drawTrain();
+}
+function drawLead() {
+  const R = rows(RS.op, RS.scn), cv = $("#rs-lead"), H = 40 + R.length * 34; cv.setAttribute("height", H); const { g, w, h } = setup(cv);
+  const all = R.flatMap(r => Object.values(r.per_run).map(v => v.lead_ms)).filter(isFinite);
+  const mx = Math.max(100, ...all) * 1.05, mn = Math.min(-60, ...all);
+  const box = { x0: 214, x1: w - 14, y0: 6, y1: h - 34, H: h }, xs = lin(mn, mx, box.x0, box.x1);
+  const tk = ticks(mn, mx, 5); axes(g, box, { ticks: tk, map: xs, fmt: v => Math.abs(mx) > 3000 ? (v / 1000) + " s" : v + "" }, { ticks: [], map: v => v }, { xl: mx > 3000 ? "warning time before full instability (s)" : "warning time before full instability (ms)" });
+  g.strokeStyle = css("--ink-3"); g.setLineDash([4, 4]); g.beginPath(); g.moveTo(xs(40), box.y0); g.lineTo(xs(40), box.y1); g.stroke(); g.setLineDash([]);
+  g.strokeStyle = css("--line"); g.beginPath(); g.moveTo(xs(0), box.y0); g.lineTo(xs(0), box.y1); g.stroke();
+  g.font = "10.5px " + css("--f-mono"); g.fillStyle = css("--ink-3"); g.textAlign = "left"; g.fillText("40 ms valve", xs(40) + 4, box.y0 + 8);
+  const hits = [];
+  R.forEach((r, i) => { const y = box.y0 + 18 + i * 34; g.fillStyle = css("--ink"); g.font = (r.model === NAME[BEST] ? "600 " : "") + "12px " + css("--f-body"); g.textAlign = "right"; g.textBaseline = "middle"; g.fillText(short(r.model), box.x0 - 8, y);
+    const vals = Object.entries(r.per_run); g.strokeStyle = css("--grid"); g.beginPath(); g.moveTo(box.x0, y + .5); g.lineTo(box.x1, y + .5); g.stroke();
+    vals.forEach(([rid, v], j) => { const lv = isFinite(v.lead_ms) ? v.lead_ms : mn; const x = xs(lv), yy = y + ((j % 3) - 1) * 5;
+      g.fillStyle = lv < 40 ? css("--crit") : css("--ink-2"); g.globalAlpha = .85; g.beginPath(); g.arc(x, yy, 4, 0, 7); g.fill(); g.globalAlpha = 1; hits.push({ x, y: yy, r, rid, v: v.lead_ms }); });
+    const xm = xs(r.lead_ms_median); g.strokeStyle = css("--ink"); g.lineWidth = 2.5; g.beginPath(); g.moveTo(xm, y - 11); g.lineTo(xm, y + 11); g.stroke(); g.lineWidth = 1; });
+  cv.onpointermove = e => { const b = cv.getBoundingClientRect(), x = e.clientX - b.left, y = e.clientY - b.top; let best = null, bd = 400; for (const p of hits) { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; best = p; } } if (!best) return hideTip();
+    showTip(e, [el("div", { cls: "k", text: best.r.model }), tipRow(null, fmtMs(best.v), "run " + best.rid), tipRow(null, fmtMs(best.r.lead_ms_median), "median over runs")]); };
+  cv.onpointerleave = hideTip;
+}
+function drawGap() {
+  const Q = D.summary.quiet_gap, keys = MODELS.map(m => m.name).filter(n => Q[n]); const cv = $("#rs-gap"), H = 30 + keys.length * 34; cv.setAttribute("height", H); const { g, w, h } = setup(cv);
+  const first = Q[keys[0]]; $("#qg-frac").textContent = fmtPct(first.gap_fraction, 0);
+  const box = { x0: 214, x1: w - 46, y0: 4, y1: h - 26, H: h }, xs = lin(0, 1, box.x0, box.x1);
+  axes(g, box, { ticks: [0, .25, .5, .75, 1], map: xs, fmt: v => (v * 100) + "%" }, { ticks: [], map: v => v });
+  const hits = [];
+  keys.forEach((k, i) => { const y = box.y0 + 8 + i * 34, q = Q[k]; g.fillStyle = css("--ink"); g.font = (k === NAME[BEST] ? "600 " : "") + "12px " + css("--f-body"); g.textAlign = "right"; g.textBaseline = "middle"; g.fillText(short(k), box.x0 - 8, y + 8);
+    [[q.burst_recall, "--s6", 0, "with a burst"], [q.gap_recall, "--s3", 10, "in a calm gap"]].forEach(([v, c, dy, lab]) => { g.fillStyle = css(c); const x1 = xs(v); g.beginPath(); g.roundRect(box.x0, y + dy, Math.max(2, x1 - box.x0), 8, [0, 4, 4, 0]); g.fill();
+      g.fillStyle = css("--ink-2"); g.font = "10.5px " + css("--f-mono"); g.textAlign = "left"; g.fillText(fmtPct(v, 0), x1 + 4, y + dy + 4); hits.push({ y0: y + dy - 1, y1: y + dy + 9, k, v, lab }); }); });
+  cv.onpointermove = e => { const b = cv.getBoundingClientRect(), y = e.clientY - b.top; const hh = hits.find(p => y >= p.y0 && y <= p.y1); if (!hh) return hideTip(); showTip(e, [el("div", { cls: "k", text: hh.k }), tipRow(null, fmtPct(hh.v), "of transition windows " + hh.lab + " flagged"), tipRow(null, Q[hh.k].flips_per_s.toFixed(1) + "/s", "decision flips inside transition")]); };
+  cv.onpointerleave = hideTip;
+}
+function drawTrade() {
+  const cv = $("#rs-trade"), { g, w, h } = setup(cv); const scn = RS.scn; $("#to-scn").textContent = scn === "fast" ? "Fast lean-outs shown." : "Slow sweeps shown.";
+  const box = { x0: 50, x1: w - 14, y0: 10, y1: h - 40, H: h }, xs = lin(0, 0.5, box.x0, box.x1), ys = lin(0, 1, box.y1, box.y0);
+  axes(g, box, { ticks: [0, .1, .2, .3, .4, .5], map: xs, fmt: v => (v * 100) + "%" }, { ticks: [0, .25, .5, .75, 1], map: ys, fmt: v => (v * 100) + "%" }, { xl: "stable windows flagged (false-alarm rate)", yl: "transition windows caught" });
+  const L = $("#rs-trade-legend"); L.replaceChildren(); const series = [];
+  for (const [k, curve] of Object.entries(D.summary.tradeoff)) { const col = css(SERIES[k]); g.strokeStyle = col; g.lineWidth = 2; g.beginPath(); let started = false; const pts = [];
+    for (const c of curve) { const v = c[scn]; if (v.far > 0.5) continue; const x = xs(v.far), y = ys(v.recall_T); pts.push({ x, y, v, tau: c.tau }); started ? g.lineTo(x, y) : (g.moveTo(x, y), started = true); } g.stroke();
+    const op = rowOf("tuned", scn, k); if (op) { g.fillStyle = col; g.strokeStyle = css("--panel"); g.lineWidth = 2; g.beginPath(); g.arc(xs(op.false_alarm_rate), ys(op.recall[1]), 5, 0, 7); g.fill(); g.stroke(); }
+    series.push({ k, col, pts }); L.append(el("span", {}, [el("i", { style: "background:" + col }), document.createTextNode(NAME[k])])); }
+  for (const k of ["rms_rule"]) { const r = rowOf("tuned", scn, k); g.fillStyle = css("--s-rule"); g.beginPath(); g.rect(xs(r.false_alarm_rate) - 5, ys(r.recall[1]) - 5, 10, 10); g.fill(); L.append(el("span", {}, [el("i", { cls: "box", style: "background:var(--s-rule)" }), document.createTextNode(NAME[k])])); }
+  cv.onpointermove = e => { const b = cv.getBoundingClientRect(), x = e.clientX - b.left; if (x < box.x0 || x > box.x1) return hideTip(); const far = (x - box.x0) / (box.x1 - box.x0) * 0.5;
+    const out = [el("div", { cls: "k", text: "at ≈ " + fmtPct(far, 0) + " false alarms" })];
+    for (const s of series) { let best = null; for (const p of s.pts) if (p.v.far <= far + 1e-9 && (!best || p.v.recall_T > best.v.recall_T)) best = p; if (best) out.push(tipRow(s.col, fmtPct(best.v.recall_T, 0), NAME[s.k])); }
+    showTip(e, out); };
+  cv.onpointerleave = hideTip;
+}
+function cmGrid(box, cm, labels = CL) {
+  box.replaceChildren(el("div", { cls: "h", text: "true ↓ / pred →" }), ...labels.map(l => el("div", { cls: "h", text: l })));
+  cm.forEach((row, i) => { const s = row.reduce((a, b) => a + b, 0) || 1; box.append(el("div", { cls: "h", style: "text-align:right", text: labels[i] }));
+    row.forEach((v, j) => { const f = v / s, d = el("div", {}); d.style.background = `color-mix(in oklab, var(--c0) ${Math.round(f * 85)}%, var(--panel-2))`; d.style.color = f > 0.5 ? "#fff" : "var(--ink)";
+      d.append(el("div", { style: "font-weight:600", text: fmtPct(f, 0) }), el("div", { style: "font-size:10.5px;opacity:.8", text: v.toLocaleString() })); box.append(d); }); });
+}
+function renderFarD() {
+  const F = D.far_dist, T = $("#rs-fard"); T.replaceChildren();
+  const lab = F.bins.slice(0, -1).map((a, i) => i === F.bins.length - 2 ? `> ${a} above` : `${a}–${F.bins[i + 1]} above`);
+  T.append(el("tr", {}, [el("th", { text: "Detector · Δφ from boundary" }), ...lab.map(l => el("th", { text: l }))]));
+  T.append(el("tr", { cls: "rule" }, [el("td", { text: "stable windows in bin" }), ...F.n.map(n => el("td", { text: n.toLocaleString() }))]));
+  for (const m of MODELS) if (F.models[m.key]) T.append(el("tr", { cls: m.key === BEST ? "best" : "" }, [el("td", { text: m.name }), ...F.models[m.key].map(v => el("td", { text: fmtPct(v) }))]));
+}
+function renderCM() { const r = rowOf(RS.op, RS.scn, RS.cm); if (r) cmGrid($("#rs-cm"), r.confusion); }
+function drawHist() {
+  const f = D.hists[RS.feat], cv = $("#rs-hist"), { g, w, h } = setup(cv); const nb = f.h[0].length, mx = Math.max(...f.h.flat()) * 1.08;
+  const box = { x0: 44, x1: w - 10, y0: 8, y1: h - 38, H: h }, xs = lin(f.lo, f.hi, box.x0, box.x1), ys = lin(0, mx, box.y1, box.y0);
+  axes(g, box, { ticks: ticks(f.lo, f.hi, 6), map: xs, fmt: v => +v.toFixed(2) }, { ticks: ticks(0, mx, 4), map: ys, fmt: v => (v * 100).toFixed(0) + "%" }, { xl: f.label });
+  const bw = (f.hi - f.lo) / nb;
+  f.h.forEach((hh, c) => { g.strokeStyle = css("--c" + c); g.lineWidth = 2; g.beginPath(); hh.forEach((v, i) => { const x0 = xs(f.lo + i * bw), x1 = xs(f.lo + (i + 1) * bw), y = ys(v); i ? g.lineTo(x0, y) : g.moveTo(x0, y); g.lineTo(x1, y); }); g.stroke(); });
+  cv.onpointermove = e => { const b = cv.getBoundingClientRect(), x = e.clientX - b.left; const i = Math.floor((x - box.x0) / (box.x1 - box.x0) * nb); if (i < 0 || i >= nb) return hideTip();
+    showTip(e, [el("div", { cls: "k", text: `${f.label}: ${(f.lo + i * bw).toFixed(2)}–${(f.lo + (i + 1) * bw).toFixed(2)}` }), ...[0, 1, 2].map(c => tipRow(css("--c" + c), fmtPct(f.h[c][i]), CL[c] + " (median " + f.median[c].toFixed(2) + ")"))]); };
+  cv.onpointerleave = hideTip;
+}
+function renderImp() {
+  const B = $("#rs-imp"); B.replaceChildren(); const lab = { p_rms: "RMS p′", kurtosis: "Kurtosis", peak_ratio: "FFT peak ratio", zcr_reg: "Zero-crossing regularity", phase_lag: "Phase lag Δθ" };
+  const ent = Object.entries(D.importance).sort((a, b) => b[1] - a[1]);
+  for (const [k, v] of ent) B.append(el("div", { cls: "r" }, [el("span", { text: lab[k] }), el("div", { cls: "b" }, [el("i", { style: `width:${v / ent[0][1] * 100}%` })]), el("span", { cls: "mono", style: "text-align:right", text: fmtPct(v, 0) })]));
+  const T = $("#rs-win"); T.replaceChildren(el("tr", {}, ["Window", "Accuracy (slow)", "False alarms (slow)", "Accuracy (fast)", "Warning, median (fast, argmax)"].map(t => el("th", { text: t }))));
+  for (const r of D.window_study) T.append(el("tr", {}, [el("td", { text: r.window_ms + " ms" + (r.window_ms === 50 ? " (used)" : "") }), el("td", { text: fmtPct(r.test_acc) }), el("td", { text: fmtPct(r.test_far) }), el("td", { text: fmtPct(r.fast_acc) }), el("td", { text: fmtMs(r.fast_lead_med) })]));
+}
+function drawTrain() {
+  const ks = Object.keys(D.deep); $("#rs-deep-panel").hidden = !ks.length; if (!ks.length) return;
+  const cv = $("#rs-train"), { g, w, h } = setup(cv); const box = { x0: 50, x1: w - 14, y0: 10, y1: h - 38, H: h };
+  const all = ks.flatMap(k => D.deep[k].history.map(x => x.val_acc)); const lo = Math.floor(Math.min(...all) * 20) / 20, xmax = Math.max(...ks.flatMap(k => D.deep[k].history.map(x => x.step)));
+  const xs = lin(0, xmax, box.x0, box.x1), ys = lin(lo, 1, box.y1, box.y0);
+  axes(g, box, { ticks: ticks(0, xmax, 6), map: xs }, { ticks: ticks(lo, 1, 4), map: ys, fmt: v => (v * 100).toFixed(0) + "%" }, { xl: "training step", yl: "validation accuracy" });
+  const L = $("#rs-train-legend"); L.replaceChildren();
+  for (const k of ks) { const col = css(SERIES[k]); g.strokeStyle = col; g.lineWidth = 2; g.beginPath(); D.deep[k].history.forEach((p, i) => { const x = xs(p.step), y = ys(p.val_acc); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+    D.deep[k].history.forEach(p => { g.fillStyle = col; g.beginPath(); g.arc(xs(p.step), ys(p.val_acc), 3, 0, 7); g.fill(); });
+    L.append(el("span", {}, [el("i", { style: "background:" + col }), document.createTextNode(`${NAME[k]} · ${D.deep[k].n_params.toLocaleString()} parameters`)])); }
+}
+
+// =============================== REAL DATA ===============================
+function renderReal() {
+  const R = D.real; $("#rd-lede").textContent = `${R.n_recordings} pressure recordings (14 stable, 14 transient, 14 limit cycle; 0.5 s each at 10 kHz) published with an open-source student project on combustion-regime classification. Split into ${R.n_windows.toLocaleString()} windows of 50 ms with the same feature code as the main study. No flame-light channel, so the phase feature is dropped.`;
+  const EX = $("#rd-examples"); EX.replaceChildren(); const names = { Stable: "Stable", Transient: "Transient", LimitCycle: "Limit cycle" };
+  R.class_summary.forEach((s, i) => { const cv = el("canvas", { height: "120" }); EX.append(el("div", { cls: "panel stack", style: "gap:8px" }, [el("div", { cls: "row spread" }, [chip(i, names[s.cls]), el("span", { cls: "mono note", text: `peak ${Math.round(s.f_peak_med)} Hz` })]), cv,
+    el("div", { cls: "note mono", text: `median RMS ${s.rms_med.toFixed(2)} · kurtosis ${s.kurt_med.toFixed(1)} · peak ratio ${s.peak_ratio_med.toFixed(2)}` })]));
+    requestAnimationFrame(() => { const { g, w, h } = setup(cv); const d = D.real_examples[s.cls].slice(0, 500), m = Math.max(1, ...d.map(Math.abs)) * 1.05; const ys = lin(-m, m, h - 4, 4); g.strokeStyle = css("--c" + i); g.lineWidth = 1.2; g.beginPath(); d.forEach((v, k) => { const x = k / (d.length - 1) * w; k ? g.lineTo(x, ys(v)) : g.moveTo(x, ys(v)); }); g.stroke(); g.fillStyle = css("--ink-3"); g.font = "10.5px " + css("--f-mono"); g.fillText("0.1 s · ±" + m.toFixed(1), 4, h - 6); }); });
+  const L3 = ["Stable", "Transient", "Limit cycle"];
+  $("#rd-a-acc").textContent = fmtPct(R.in_domain.acc); $("#rd-a-rec").textContent = `window accuracy · ${fmtPct(R.in_domain.recording_acc, 0)} of recordings right by majority vote`; cmGrid($("#rd-cm-a"), R.in_domain.confusion, L3);
+  $("#rd-b-acc").textContent = fmtPct(R.zero_shot.acc); cmGrid($("#rd-cm-b"), R.zero_shot.confusion, L3);
+  $("#rd-r-acc").textContent = fmtPct(R.rms_rule.acc); cmGrid($("#rd-cm-r"), R.rms_rule.confusion, L3);
+  $("#rd-read").textContent = `The same four features separate the real regimes well when the model is trained on that rig: ${fmtPct(R.in_domain.acc)} of windows and every recording are classified correctly. Transferred straight from our simulated rig, accuracy drops to ${fmtPct(R.zero_shot.acc)}. Stable and limit-cycle recordings are recognised, but most real transient windows are called unstable, because this rig's bursts are louder relative to its baseline than ours. This is the cross-rig drop the report anticipates in §7.4, and it is the main argument for calibrating on a few minutes of data from the target engine.`;
+}
+
+// =============================== METHOD ===============================
+function renderMethod() {
+  const ramps = D.runs.filter(r => r.kind === "ramp"), fast = D.runs.filter(r => r.kind === "fast"); const nwin = ramps.reduce((a, r) => a + r.n_windows, 0);
+  const T = $("#md-design"); T.replaceChildren(el("tr", {}, ["Item", "Value"].map(t => el("th", { text: t }))));
+  for (const [k, v] of [["Slow sweeps", `${ramps.length} runs × 30 s, φ 0.90 → 0.55`], ["Windows from sweeps", nwin.toLocaleString() + " (50 ms, 10 ms stride)"], ["Split by whole run", `train ${D.split.train.length} · val ${D.split.val.length} · test ${D.split.test.length}`], ["Fast lean-outs (extra test)", `${fast.length} runs, φ 0.86 → 0.58 in 1.5–4 s`], ["Run-to-run variation", "bulk flow ±6%, damping ±5%, noise ±15–25%, mode 205–215 Hz"], ["Sampling", "10 kHz, p′ and q′ synchronised"]])
+    T.append(el("tr", {}, [el("td", { text: k }), el("td", { text: v })]));
+  const q = (a, p) => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(p * (s.length - 1))]; };
+  const st = ramps.map(r => r.phi_ST), tu = ramps.map(r => r.phi_TU);
+  $("#md-phi0").textContent = `> ${q(st, .5).toFixed(2)}`; $("#md-phi1").textContent = `${q(tu, .5).toFixed(2)} – ${q(st, .5).toFixed(2)}`; $("#md-phi2").textContent = `< ${q(tu, .5).toFixed(2)}`;
+  const M = $("#md-models"); M.replaceChildren(el("tr", {}, ["Detector", "Input", "Details"].map(t => el("th", { text: t }))));
+  const info = { rms_danger: ["RMS", "single alarm at 1.2 kPa (industry practice)"], rms_rule: ["RMS", "report rule: < 0.3 / 0.3–1.2 / ≥ 1.2 kPa"], svm: ["5 features", "RBF kernel, C = 10, standardised"], rf: ["5 features", "100 trees, min leaf 3"], rf_smooth: ["5 features", "RF probabilities averaged over the last 100 ms"],
+    cnn: ["raw p′, 50 ms", "4 conv layers → dense"], lstm_p: ["raw p′, 200 ms", "CNN per window → LSTM(64) over 16 windows"], lstm_pq: ["raw p′ + q′, 200 ms", "2-channel CNN → LSTM(64) over 16 windows"] };
+  for (const m of MODELS) M.append(el("tr", {}, [el("td", { text: m.name }), el("td", { style: "font-family:var(--f-body)", text: info[m.key][0] }), el("td", { style: "font-family:var(--f-body);text-align:left;white-space:normal", text: info[m.key][1] })]));
+}
+
+const RENDER = { overview: renderOverview, replay: () => Replay.draw(), results: renderResults, realdata: renderReal, method: renderMethod, simulator: () => {} };
+route(); requestAnimationFrame(drawScope);
+})();
+</script>
