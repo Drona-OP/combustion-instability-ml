@@ -1,0 +1,39 @@
+cnn step 250 loss 0.478 val acc 0.783  25s
+cnn step 500 loss 0.368 val acc 0.802  47s
+cnn step 750 loss 0.396 val acc 0.797  73s
+cnn step 1000 loss 0.325 val acc 0.764  96s
+cnn step 1250 loss 0.325 val acc 0.776  118s
+cnn step 1500 loss 0.366 val acc 0.783  140s
+cnn step 1750 loss 0.206 val acc 0.771  162s
+cnn step 2000 loss 0.208 val acc 0.747  183s
+cnn step 2250 loss 0.157 val acc 0.765  205s
+cnn step 2500 loss 0.146 val acc 0.778  229s
+cnn step 2750 loss 0.162 val acc 0.768  250s
+cnn step 3000 loss 0.098 val acc 0.774  273s
+cnn done; latency 0.44 ms, params 47587
+lstm_p step 250 loss 0.532 val acc 0.692  41s
+lstm_p step 500 loss 0.282 val acc 0.754  79s
+lstm_p step 750 loss 0.232 val acc 0.767  118s
+lstm_p step 1000 loss 0.308 val acc 0.792  157s
+lstm_p step 1250 loss 0.446 val acc 0.749  196s
+lstm_p step 1500 loss 0.377 val acc 0.841  234s
+lstm_p step 1750 loss 0.085 val acc 0.821  273s
+lstm_p step 2000 loss 0.174 val acc 0.799  313s
+lstm_p step 2250 loss 1.061 val acc 0.775  359s
+lstm_p step 2500 loss 0.236 val acc 0.781  399s
+lstm_p step 2750 loss 0.316 val acc 0.793  441s
+lstm_p step 3000 loss 0.331 val acc 0.793  480s
+lstm_p done; latency 1.77 ms, params 80611
+lstm_pq step 250 loss 0.326 val acc 0.705  41s
+lstm_pq step 500 loss 0.271 val acc 0.822  79s
+lstm_pq step 750 loss 0.155 val acc 0.782  117s
+lstm_pq step 1000 loss 0.123 val acc 0.913  155s
+lstm_pq step 1250 loss 0.479 val acc 0.842  193s
+lstm_pq step 1500 loss 0.043 val acc 0.901  230s
+lstm_pq step 1750 loss 0.015 val acc 0.887  270s
+lstm_pq step 2000 loss 0.005 val acc 0.899  309s
+lstm_pq step 2250 loss 0.057 val acc 0.899  348s
+lstm_pq step 2500 loss 0.001 val acc 0.879  387s
+lstm_pq step 2750 loss 0.001 val acc 0.885  426s
+lstm_pq step 3000 loss 0.001 val acc 0.881  464s
+lstm_pq done; latency 1.66 ms, params 80755

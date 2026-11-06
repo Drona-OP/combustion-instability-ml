@@ -1,0 +1,18 @@
+train (32956, 5) [ 9555 15009  8392] val (5992, 5)
+svm fit 15.408805131912231
+val acc svm 0.797 rf 0.794
+[test] RMS danger alarm (1.2 kPa)         acc 0.538 F1 0.493 FAR 0.000 lead med -20 min -20 >=40ms 0.00 FA/min 0.00 lat 0.02ms
+[test] RMS 3-level threshold              acc 0.648 F1 0.649 FAR 0.015 lead med 420 min 150 >=40ms 1.00 FA/min 13.74 lat 0.02ms
+[test] SVM (5 features)                   acc 0.778 F1 0.792 FAR 0.296 lead med 5250 min 4510 >=40ms 1.00 FA/min 75.56 lat 0.69ms
+[test] Random Forest (5 features)         acc 0.775 F1 0.787 FAR 0.330 lead med 5225 min 4510 >=40ms 1.00 FA/min 78.99 lat 21.57ms
+[test] Random Forest + 100 ms smoothing   acc 0.815 F1 0.824 FAR 0.276 lead med 2910 min 1360 >=40ms 1.00 FA/min 92.73 lat 20.56ms
+[fast] RMS danger alarm (1.2 kPa)         acc 0.694 F1 0.549 FAR 0.000 lead med -20 min -20 >=40ms 0.00 FA/min 0.00 lat 0.02ms
+[fast] RMS 3-level threshold              acc 0.762 F1 0.692 FAR 0.005 lead med 210 min 60 >=40ms 1.00 FA/min 6.50 lat 0.02ms
+[fast] SVM (5 features)                   acc 0.830 F1 0.815 FAR 0.269 lead med 1255 min 320 >=40ms 1.00 FA/min 84.51 lat 0.64ms
+[fast] Random Forest (5 features)         acc 0.823 F1 0.809 FAR 0.308 lead med 1370 min 340 >=40ms 1.00 FA/min 68.26 lat 20.84ms
+[fast] Random Forest + 100 ms smoothing   acc 0.852 F1 0.842 FAR 0.246 lead med 1230 min 280 >=40ms 1.00 FA/min 84.51 lat 19.14ms
+RF importances {'p_rms': 0.382710395573355, 'kurtosis': 0.18954540525484848, 'peak_ratio': 0.1768873016612738, 'zcr_reg': 0.08958758283697549, 'phase_lag': 0.16126931467354727}
+window 30.0 {'window_ms': 30.0, 'test_acc': 0.7656771180787192, 'test_f1': 0.7791738748505002, 'test_far': 0.3420902341519132, 'fast_acc': 0.8070003271180897, 'fast_lead_med': 1360.0, 'test_lead_med': 5385.0}
+window 50.0 {'window_ms': 50.0, 'test_acc': 0.7748664886515354, 'test_f1': 0.7867800786084181, 'test_far': 0.3302804808242702, 'fast_acc': 0.8234811165845649, 'fast_lead_med': 1370.0, 'test_lead_med': 5225.0}
+window 100.0 {'window_ms': 100.0, 'test_acc': 0.8010698762955534, 'test_f1': 0.8112652404439307, 'test_far': 0.28785261945883706, 'fast_acc': 0.8411276948590382, 'fast_lead_med': 1395.0, 'test_lead_med': 5225.0}
+single-window latency (ms) feat 0.23 rf 4.43 svm 0.44

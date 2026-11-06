@@ -1,0 +1,99 @@
+{
+ "source": "github.com/Hashim-mirjan/combustion-stability-classifier-mech0020 (TestingData/)",
+ "n_recordings": 42,
+ "n_windows": 1932,
+ "class_summary": [
+  {
+   "cls": "Stable",
+   "n_rec": 14,
+   "rms_med": 0.10186736285686493,
+   "kurt_med": 2.822136163711548,
+   "peak_ratio_med": 0.47934144735336304,
+   "f_peak_med": 1145.01953125
+  },
+  {
+   "cls": "Transient",
+   "n_rec": 14,
+   "rms_med": 0.9764994382858276,
+   "kurt_med": 2.650935649871826,
+   "peak_ratio_med": 0.8423776626586914,
+   "f_peak_med": 375.9765625
+  },
+  {
+   "cls": "LimitCycle",
+   "n_rec": 14,
+   "rms_med": 3.574615240097046,
+   "kurt_med": 1.7664952278137207,
+   "peak_ratio_med": 0.939389705657959,
+   "f_peak_med": 405.2734375
+  }
+ ],
+ "in_domain": {
+  "acc": 0.9409937888198758,
+  "recording_acc": 1.0,
+  "confusion": [
+   [
+    602,
+    42,
+    0
+   ],
+   [
+    53,
+    589,
+    2
+   ],
+   [
+    0,
+    17,
+    627
+   ]
+  ],
+  "importance": [
+   0.45160076655601594,
+   0.19820107209236115,
+   0.21056049709239746,
+   0.13963766425922539
+  ]
+ },
+ "rms_rule": {
+  "acc": 0.7489648033126294,
+  "confusion": [
+   [
+    644,
+    0,
+    0
+   ],
+   [
+    200,
+    159,
+    285
+   ],
+   [
+    0,
+    0,
+    644
+   ]
+  ]
+ },
+ "zero_shot": {
+  "acc": 0.7158385093167702,
+  "confusion": [
+   [
+    409,
+    235,
+    0
+   ],
+   [
+    26,
+    330,
+    288
+   ],
+   [
+    0,
+    0,
+    644
+   ]
+  ],
+  "baseline_real": 0.10186736285686493
+ }
+}

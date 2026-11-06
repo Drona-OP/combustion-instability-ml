@@ -1,0 +1,869 @@
+{
+ "results": {
+  "test": [
+   {
+    "model": "RMS danger alarm (1.2 kPa)",
+    "accuracy": 0.5382176234979973,
+    "macro_f1": 0.4932187627149842,
+    "recall": [
+     1.0,
+     0.0,
+     0.988628762541806
+    ],
+    "precision": [
+     0.42015392015392017,
+     0.0,
+     0.8058887677208287
+    ],
+    "f1": [
+     0.5917019475021169,
+     0.0,
+     0.8879543406428357
+    ],
+    "false_alarm_rate": 0.0,
+    "confusion": [
+     [
+      1747,
+      0,
+      0
+     ],
+     [
+      2394,
+      0,
+      356
+     ],
+     [
+      17,
+      0,
+      1478
+     ]
+    ],
+    "lead_ms_median": -20.0,
+    "lead_ms_min": -20.0,
+    "lead_ms_mean": -20.0,
+    "pct_runs_lead_ge_valve": 0.0,
+    "false_alarm_episodes": 0,
+    "false_alarms_per_min": 0.0,
+    "per_run": {
+     "14": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 12500.0
+     },
+     "15": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 8730.0
+     }
+    },
+    "latency_ms": 0.020098910000284985
+   },
+   {
+    "model": "RMS 3-level threshold",
+    "accuracy": 0.6481975967957276,
+    "macro_f1": 0.6489075680763848,
+    "recall": [
+     0.9851173440183171,
+     0.24909090909090909,
+     0.988628762541806
+    ],
+    "precision": [
+     0.5017492711370263,
+     0.9409340659340659,
+     0.8058887677208287
+    ],
+    "f1": [
+     0.6648638207456056,
+     0.3939045428407131,
+     0.8879543406428357
+    ],
+    "false_alarm_rate": 0.014882655981682884,
+    "confusion": [
+     [
+      1721,
+      26,
+      0
+     ],
+     [
+      1709,
+      685,
+      356
+     ],
+     [
+      0,
+      17,
+      1478
+     ]
+    ],
+    "lead_ms_median": 420.00000000000006,
+    "lead_ms_min": 150.0,
+    "lead_ms_mean": 420.00000000000006,
+    "pct_runs_lead_ge_valve": 1.0,
+    "false_alarm_episodes": 4,
+    "false_alarms_per_min": 13.7378362907842,
+    "per_run": {
+     "14": {
+      "lead_ms": 150.0,
+      "false_episodes": 3,
+      "avail_ms": 12500.0
+     },
+     "15": {
+      "lead_ms": 690.0000000000001,
+      "false_episodes": 1,
+      "avail_ms": 8730.0
+     }
+    },
+    "latency_ms": 0.020154730000000808
+   },
+   {
+    "model": "SVM (5 features)",
+    "accuracy": 0.7782042723631508,
+    "macro_f1": 0.791891853316775,
+    "recall": [
+     0.7040641099026903,
+     0.7385454545454545,
+     0.9377926421404682
+    ],
+    "precision": [
+     0.6581059390048154,
+     0.769026883756153,
+     0.9460188933873145
+    ],
+    "f1": [
+     0.6803097345132744,
+     0.753478018920423,
+     0.9418878065166275
+    ],
+    "false_alarm_rate": 0.2959358900973097,
+    "confusion": [
+     [
+      1230,
+      517,
+      0
+     ],
+     [
+      639,
+      2031,
+      80
+     ],
+     [
+      0,
+      93,
+      1402
+     ]
+    ],
+    "lead_ms_median": 5250.0,
+    "lead_ms_min": 4510.0,
+    "lead_ms_mean": 5250.0,
+    "pct_runs_lead_ge_valve": 1.0,
+    "false_alarm_episodes": 22,
+    "false_alarms_per_min": 75.55809959931311,
+    "per_run": {
+     "14": {
+      "lead_ms": 4510.0,
+      "false_episodes": 10,
+      "avail_ms": 12500.0
+     },
+     "15": {
+      "lead_ms": 5990.0,
+      "false_episodes": 12,
+      "avail_ms": 8730.0
+     }
+    },
+    "latency_ms": 0.6888007633331957
+   },
+   {
+    "model": "Random Forest (5 features)",
+    "accuracy": 0.7748664886515354,
+    "macro_f1": 0.7867800786084181,
+    "recall": [
+     0.6697195191757298,
+     0.7567272727272727,
+     0.9311036789297659
+    ],
+    "precision": [
+     0.6670467502850627,
+     0.7537124230351322,
+     0.942450914014895
+    ],
+    "f1": [
+     0.6683804627249357,
+     0.7552168390491744,
+     0.9367429340511441
+    ],
+    "false_alarm_rate": 0.3302804808242702,
+    "confusion": [
+     [
+      1170,
+      577,
+      0
+     ],
+     [
+      584,
+      2081,
+      85
+     ],
+     [
+      0,
+      103,
+      1392
+     ]
+    ],
+    "lead_ms_median": 5225.0,
+    "lead_ms_min": 4510.0,
+    "lead_ms_mean": 5225.0,
+    "pct_runs_lead_ge_valve": 1.0,
+    "false_alarm_episodes": 23,
+    "false_alarms_per_min": 78.99255867200915,
+    "per_run": {
+     "14": {
+      "lead_ms": 4510.0,
+      "false_episodes": 12,
+      "avail_ms": 12500.0
+     },
+     "15": {
+      "lead_ms": 5940.0,
+      "false_episodes": 11,
+      "avail_ms": 8730.0
+     }
+    },
+    "latency_ms": 21.567196119999988
+   },
+   {
+    "model": "Random Forest + 100 ms smoothing",
+    "accuracy": 0.8145861148197597,
+    "macro_f1": 0.8241048231222536,
+    "recall": [
+     0.723526044647968,
+     0.8105454545454546,
+     0.928428093645485
+    ],
+    "precision": [
+     0.7310584152689416,
+     0.7907059240865555,
+     0.961218836565097
+    ],
+    "f1": [
+     0.7272727272727272,
+     0.8005027832644999,
+     0.9445389588295339
+    ],
+    "false_alarm_rate": 0.27647395535203206,
+    "confusion": [
+     [
+      1264,
+      483,
+      0
+     ],
+     [
+      465,
+      2229,
+      56
+     ],
+     [
+      0,
+      107,
+      1388
+     ]
+    ],
+    "lead_ms_median": 2910.0,
+    "lead_ms_min": 1360.0,
+    "lead_ms_mean": 2910.0,
+    "pct_runs_lead_ge_valve": 1.0,
+    "false_alarm_episodes": 27,
+    "false_alarms_per_min": 92.73039496279335,
+    "per_run": {
+     "14": {
+      "lead_ms": 4460.0,
+      "false_episodes": 15,
+      "avail_ms": 12500.0
+     },
+     "15": {
+      "lead_ms": 1360.0,
+      "false_episodes": 12,
+      "avail_ms": 8730.0
+     }
+    },
+    "latency_ms": 20.558727683333398
+   }
+  ],
+  "fast": [
+   {
+    "model": "RMS danger alarm (1.2 kPa)",
+    "accuracy": 0.6940886699507389,
+    "macro_f1": 0.5485017114867793,
+    "recall": [
+     1.0,
+     0.0,
+     0.9750204750204751
+    ],
+    "precision": [
+     0.5088202866593164,
+     0.0,
+     0.9670999187652315
+    ],
+    "f1": [
+     0.6744610887833394,
+     0.0,
+     0.9710440456769983
+    ],
+    "false_alarm_rate": 0.0,
+    "confusion": [
+     [
+      1846,
+      0,
+      0
+     ],
+     [
+      1721,
+      0,
+      81
+     ],
+     [
+      61,
+      0,
+      2381
+     ]
+    ],
+    "lead_ms_median": -20.0,
+    "lead_ms_min": -20.0,
+    "lead_ms_mean": -20.0,
+    "pct_runs_lead_ge_valve": 0.0,
+    "false_alarm_episodes": 0,
+    "false_alarms_per_min": 0.0,
+    "per_run": {
+     "101": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 1410.0
+     },
+     "102": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 2140.0
+     },
+     "103": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 1330.0
+     },
+     "104": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 1300.0
+     },
+     "105": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 1550.0
+     },
+     "106": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 1140.0000000000002
+     },
+     "107": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 1200.0
+     },
+     "108": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 880.0
+     },
+     "109": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 1560.0
+     },
+     "110": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 1740.0
+     },
+     "111": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 1510.0
+     },
+     "112": {
+      "lead_ms": -20.0,
+      "false_episodes": 0,
+      "avail_ms": 2060.0
+     }
+    },
+    "latency_ms": 0.020094569999949574
+   },
+   {
+    "model": "RMS 3-level threshold",
+    "accuracy": 0.7617405582922824,
+    "macro_f1": 0.6920847027769078,
+    "recall": [
+     0.9945828819068255,
+     0.2341842397336293,
+     0.9750204750204751
+    ],
+    "precision": [
+     0.582302568981922,
+     0.888421052631579,
+     0.9670999187652315
+    ],
+    "f1": [
+     0.7345469093818763,
+     0.37066315327184896,
+     0.9710440456769983
+    ],
+    "false_alarm_rate": 0.005417118093174431,
+    "confusion": [
+     [
+      1836,
+      10,
+      0
+     ],
+     [
+      1299,
+      422,
+      81
+     ],
+     [
+      18,
+      43,
+      2381
+     ]
+    ],
+    "lead_ms_median": 210.0,
+    "lead_ms_min": 60.0,
+    "lead_ms_mean": 210.83333333333334,
+    "pct_runs_lead_ge_valve": 1.0,
+    "false_alarm_episodes": 2,
+    "false_alarms_per_min": 6.5005417118093165,
+    "per_run": {
+     "101": {
+      "lead_ms": 110.0,
+      "false_episodes": 1,
+      "avail_ms": 1410.0
+     },
+     "102": {
+      "lead_ms": 240.0,
+      "false_episodes": 0,
+      "avail_ms": 2140.0
+     },
+     "103": {
+      "lead_ms": 290.0,
+      "false_episodes": 1,
+      "avail_ms": 1330.0
+     },
+     "104": {
+      "lead_ms": 300.0,
+      "false_episodes": 0,
+      "avail_ms": 1300.0
+     },
+     "105": {
+      "lead_ms": 100.0,
+      "false_episodes": 0,
+      "avail_ms": 1550.0
+     },
+     "106": {
+      "lead_ms": 390.0,
+      "false_episodes": 0,
+      "avail_ms": 1140.0000000000002
+     },
+     "107": {
+      "lead_ms": 100.0,
+      "false_episodes": 0,
+      "avail_ms": 1200.0
+     },
+     "108": {
+      "lead_ms": 180.0,
+      "false_episodes": 0,
+      "avail_ms": 880.0
+     },
+     "109": {
+      "lead_ms": 400.0,
+      "false_episodes": 0,
+      "avail_ms": 1560.0
+     },
+     "110": {
+      "lead_ms": 120.0,
+      "false_episodes": 0,
+      "avail_ms": 1740.0
+     },
+     "111": {
+      "lead_ms": 60.0,
+      "false_episodes": 0,
+      "avail_ms": 1510.0
+     },
+     "112": {
+      "lead_ms": 240.0,
+      "false_episodes": 0,
+      "avail_ms": 2060.0
+     }
+    },
+    "latency_ms": 0.020160820000019158
+   },
+   {
+    "model": "SVM (5 features)",
+    "accuracy": 0.8300492610837439,
+    "macro_f1": 0.8154339391206471,
+    "recall": [
+     0.7313109425785482,
+     0.7547169811320755,
+     0.9602784602784603
+    ],
+    "precision": [
+     0.7635746606334841,
+     0.6967213114754098,
+     0.989451476793249
+    ],
+    "f1": [
+     0.7470946319867182,
+     0.7245604688332445,
+     0.9746467165419784
+    ],
+    "false_alarm_rate": 0.26868905742145177,
+    "confusion": [
+     [
+      1350,
+      496,
+      0
+     ],
+     [
+      417,
+      1360,
+      25
+     ],
+     [
+      1,
+      96,
+      2345
+     ]
+    ],
+    "lead_ms_median": 1255.0,
+    "lead_ms_min": 320.0,
+    "lead_ms_mean": 1142.5,
+    "pct_runs_lead_ge_valve": 1.0,
+    "false_alarm_episodes": 26,
+    "false_alarms_per_min": 84.50704225352112,
+    "per_run": {
+     "101": {
+      "lead_ms": 500.0,
+      "false_episodes": 1,
+      "avail_ms": 1410.0
+     },
+     "102": {
+      "lead_ms": 1820.0,
+      "false_episodes": 4,
+      "avail_ms": 2140.0
+     },
+     "103": {
+      "lead_ms": 1330.0,
+      "false_episodes": 3,
+      "avail_ms": 1330.0
+     },
+     "104": {
+      "lead_ms": 320.0,
+      "false_episodes": 0,
+      "avail_ms": 1300.0
+     },
+     "105": {
+      "lead_ms": 330.0,
+      "false_episodes": 1,
+      "avail_ms": 1550.0
+     },
+     "106": {
+      "lead_ms": 830.0000000000001,
+      "false_episodes": 2,
+      "avail_ms": 1140.0000000000002
+     },
+     "107": {
+      "lead_ms": 1180.0,
+      "false_episodes": 4,
+      "avail_ms": 1200.0
+     },
+     "108": {
+      "lead_ms": 710.0,
+      "false_episodes": 0,
+      "avail_ms": 880.0
+     },
+     "109": {
+      "lead_ms": 1560.0,
+      "false_episodes": 2,
+      "avail_ms": 1560.0
+     },
+     "110": {
+      "lead_ms": 1560.0,
+      "false_episodes": 2,
+      "avail_ms": 1740.0
+     },
+     "111": {
+      "lead_ms": 1510.0,
+      "false_episodes": 3,
+      "avail_ms": 1510.0
+     },
+     "112": {
+      "lead_ms": 2060.0,
+      "false_episodes": 4,
+      "avail_ms": 2060.0
+     }
+    },
+    "latency_ms": 0.6372103000001061
+   },
+   {
+    "model": "Random Forest (5 features)",
+    "accuracy": 0.8234811165845649,
+    "macro_f1": 0.808660881611556,
+    "recall": [
+     0.6917659804983749,
+     0.779134295227525,
+     0.9557739557739557
+    ],
+    "precision": [
+     0.7739393939393939,
+     0.675,
+     0.9889830508474576
+    ],
+    "f1": [
+     0.7305491990846682,
+     0.7233384853168471,
+     0.9720949604331529
+    ],
+    "false_alarm_rate": 0.30823401950162516,
+    "confusion": [
+     [
+      1277,
+      569,
+      0
+     ],
+     [
+      372,
+      1404,
+      26
+     ],
+     [
+      1,
+      107,
+      2334
+     ]
+    ],
+    "lead_ms_median": 1370.0,
+    "lead_ms_min": 340.0,
+    "lead_ms_mean": 1279.1666666666667,
+    "pct_runs_lead_ge_valve": 1.0,
+    "false_alarm_episodes": 21,
+    "false_alarms_per_min": 68.25568797399782,
+    "per_run": {
+     "101": {
+      "lead_ms": 1410.0,
+      "false_episodes": 1,
+      "avail_ms": 1410.0
+     },
+     "102": {
+      "lead_ms": 1640.0000000000002,
+      "false_episodes": 3,
+      "avail_ms": 2140.0
+     },
+     "103": {
+      "lead_ms": 1330.0,
+      "false_episodes": 2,
+      "avail_ms": 1330.0
+     },
+     "104": {
+      "lead_ms": 340.0,
+      "false_episodes": 0,
+      "avail_ms": 1300.0
+     },
+     "105": {
+      "lead_ms": 1240.0,
+      "false_episodes": 1,
+      "avail_ms": 1550.0
+     },
+     "106": {
+      "lead_ms": 830.0000000000001,
+      "false_episodes": 2,
+      "avail_ms": 1140.0000000000002
+     },
+     "107": {
+      "lead_ms": 1190.0,
+      "false_episodes": 2,
+      "avail_ms": 1200.0
+     },
+     "108": {
+      "lead_ms": 710.0,
+      "false_episodes": 1,
+      "avail_ms": 880.0
+     },
+     "109": {
+      "lead_ms": 1560.0,
+      "false_episodes": 2,
+      "avail_ms": 1560.0
+     },
+     "110": {
+      "lead_ms": 1530.0,
+      "false_episodes": 2,
+      "avail_ms": 1740.0
+     },
+     "111": {
+      "lead_ms": 1510.0,
+      "false_episodes": 2,
+      "avail_ms": 1510.0
+     },
+     "112": {
+      "lead_ms": 2060.0,
+      "false_episodes": 3,
+      "avail_ms": 2060.0
+     }
+    },
+    "latency_ms": 20.840481926666524
+   },
+   {
+    "model": "Random Forest + 100 ms smoothing",
+    "accuracy": 0.851888341543514,
+    "macro_f1": 0.8416456055912199,
+    "recall": [
+     0.7535211267605634,
+     0.8340732519422863,
+     0.9393939393939394
+    ],
+    "precision": [
+     0.8289630512514898,
+     0.7136752136752137,
+     0.99479618386817
+    ],
+    "f1": [
+     0.7894438138479002,
+     0.7691914022517913,
+     0.9663016006739681
+    ],
+    "false_alarm_rate": 0.24647887323943662,
+    "confusion": [
+     [
+      1391,
+      455,
+      0
+     ],
+     [
+      287,
+      1503,
+      12
+     ],
+     [
+      0,
+      148,
+      2294
+     ]
+    ],
+    "lead_ms_median": 1230.0,
+    "lead_ms_min": 280.0,
+    "lead_ms_mean": 1130.8333333333333,
+    "pct_runs_lead_ge_valve": 1.0,
+    "false_alarm_episodes": 26,
+    "false_alarms_per_min": 84.50704225352112,
+    "per_run": {
+     "101": {
+      "lead_ms": 1410.0,
+      "false_episodes": 2,
+      "avail_ms": 1410.0
+     },
+     "102": {
+      "lead_ms": 1600.0,
+      "false_episodes": 1,
+      "avail_ms": 2140.0
+     },
+     "103": {
+      "lead_ms": 1330.0,
+      "false_episodes": 4,
+      "avail_ms": 1330.0
+     },
+     "104": {
+      "lead_ms": 310.0,
+      "false_episodes": 0,
+      "avail_ms": 1300.0
+     },
+     "105": {
+      "lead_ms": 280.0,
+      "false_episodes": 1,
+      "avail_ms": 1550.0
+     },
+     "106": {
+      "lead_ms": 780.0,
+      "false_episodes": 2,
+      "avail_ms": 1140.0000000000002
+     },
+     "107": {
+      "lead_ms": 1150.0000000000002,
+      "false_episodes": 2,
+      "avail_ms": 1200.0
+     },
+     "108": {
+      "lead_ms": 640.0,
+      "false_episodes": 1,
+      "avail_ms": 880.0
+     },
+     "109": {
+      "lead_ms": 1560.0,
+      "false_episodes": 3,
+      "avail_ms": 1560.0
+     },
+     "110": {
+      "lead_ms": 1140.0000000000002,
+      "false_episodes": 2,
+      "avail_ms": 1740.0
+     },
+     "111": {
+      "lead_ms": 1310.0,
+      "false_episodes": 3,
+      "avail_ms": 1510.0
+     },
+     "112": {
+      "lead_ms": 2060.0,
+      "false_episodes": 5,
+      "avail_ms": 2060.0
+     }
+    },
+    "latency_ms": 19.140245530000282
+   }
+  ]
+ },
+ "rf_importance": {
+  "p_rms": 0.382710395573355,
+  "kurtosis": 0.18954540525484848,
+  "peak_ratio": 0.1768873016612738,
+  "zcr_reg": 0.08958758283697549,
+  "phase_lag": 0.16126931467354727
+ },
+ "window_study": [
+  {
+   "window_ms": 30.0,
+   "test_acc": 0.7656771180787192,
+   "test_f1": 0.7791738748505002,
+   "test_far": 0.3420902341519132,
+   "fast_acc": 0.8070003271180897,
+   "fast_lead_med": 1360.0,
+   "test_lead_med": 5385.0
+  },
+  {
+   "window_ms": 50.0,
+   "test_acc": 0.7748664886515354,
+   "test_f1": 0.7867800786084181,
+   "test_far": 0.3302804808242702,
+   "fast_acc": 0.8234811165845649,
+   "fast_lead_med": 1370.0,
+   "test_lead_med": 5225.0
+  },
+  {
+   "window_ms": 100.0,
+   "test_acc": 0.8010698762955534,
+   "test_f1": 0.8112652404439307,
+   "test_far": 0.28785261945883706,
+   "fast_acc": 0.8411276948590382,
+   "fast_lead_med": 1395.0,
+   "test_lead_med": 5225.0
+  }
+ ],
+ "latency": {
+  "features": 0.22642736666663646,
+  "rf": 4.43343339333334,
+  "svm": 0.44034991666687046
+ }
+}
