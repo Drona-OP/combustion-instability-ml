@@ -30,6 +30,18 @@ python export_web.py && python build_web.py  # -> web/index.html (self-contained
 
 Open `web/index.html` in any browser. It needs no server.
 
+## Open the website
+
+**Live (GitHub Pages):** https://drona-op.github.io/combustion-instability-ml/
+
+The site is one self-contained HTML file (`index.html` at the repo root, same as `web/index.html`). No server or build step is needed.
+
+- **GitHub Pages (recommended, free, does not expire):** repo **Settings -> Pages -> Source: Deploy from a branch -> Branch: `main`, folder `/ (root)` -> Save**. After about a minute the site is live at the link above, and stays up as long as the repo is public.
+- **Vercel (alternative, also free and permanent):** vercel.com -> Add New -> Project -> import this repo -> Framework preset "Other", no build command -> Deploy.
+- **Offline:** download the repo and double-click `web/index.html` (Chrome or Edge).
+
+Tabs: Overview, Live replay (held-out runs streamed with two detectors side by side), Simulator (the combustor model running live in the browser with a Random Forest), Results, Real data, Method.
+
 ## Files
 
 | File | What it does |

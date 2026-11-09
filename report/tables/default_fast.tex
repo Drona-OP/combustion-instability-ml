@@ -1,0 +1,14 @@
+\begin{table}[H]\centering\small
+\caption{Fast lean-outs with plain arg-max decisions (no threshold tuning). False alarms are much higher, which also inflates warning time.}\label{tab:defaultfast}
+\resizebox{\textwidth}{!}{\begin{tabular}{lrrrrrrr}\toprule
+Detector & Acc. (\%) & Macro-F1 & Trans. caught (\%) & False alarms (\%) & Median warning & Worst run & Runs $\geq$40\,ms \\\midrule
+RMS danger alarm (1.2\,kPa) & 69.4 & 0.549 & 0.0 & 0.0 & $-$20\,ms & $-$20\,ms & 0/12 \\
+RMS 3-level rule & 76.2 & 0.692 & 23.4 & 0.5 & 210\,ms & 60\,ms & 12/12 \\
+SVM (5 features) & 82.0 & 0.805 & 78.2 & 31.7 & 1.37\,s & 320\,ms & 12/12 \\
+Random Forest (5 features) & 82.3 & 0.809 & 77.9 & 30.8 & 1.37\,s & 340\,ms & 12/12 \\
+RF + 100\,ms smoothing & 85.2 & 0.842 & 83.4 & 24.6 & 1.23\,s & 280\,ms & 12/12 \\
+1D-CNN (raw $p'$) & 81.2 & 0.792 & 55.0 & 5.5 & 985\,ms & 120\,ms & 12/12 \\
+CNN-LSTM ($p'$) & 75.0 & 0.754 & 76.9 & 13.3 & 1.15\,s & 290\,ms & 12/12 \\
+\textbf{CNN-LSTM ($p'+q'$)} & \textbf{88.7} & \textbf{0.881} & \textbf{87.2} & \textbf{14.8} & \textbf{1.22\,s} & \textbf{620\,ms} & \textbf{12/12} \\
+\bottomrule\end{tabular}}
+\end{table}

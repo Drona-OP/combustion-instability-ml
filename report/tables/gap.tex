@@ -1,0 +1,14 @@
+\begin{table}[H]\centering\small
+\caption{Recall inside the true transition, split into windows containing a burst (RMS $\geq$ 0.3\,kPa) and windows in a calm gap (RMS $<$ 0.3\,kPa), slow sweeps. \textit{Flips} counts how often the decision switches between stable and non-stable per second of transition.}\label{tab:gap}
+\begin{tabular}{lrrr}\toprule
+Detector & Burst windows (\%) & Calm-gap windows (\%) & Flips per second \\\midrule
+RMS danger alarm (1.2\,kPa) & 34 & 0 & 0.6 \\
+RMS 3-level rule & 100 & 0 & 3.6 \\
+SVM (5 features) & 90 & 11 & 10.5 \\
+Random Forest (5 features) & 98 & 11 & 9.3 \\
+RF + 100\,ms smoothing & 91 & 21 & 3.1 \\
+1D-CNN (raw $p'$) & 94 & 6 & 6.4 \\
+CNN-LSTM ($p'$) & 94 & 25 & 3.6 \\
+CNN-LSTM ($p'+q'$) & 100 & 73 & 3.1 \\
+\bottomrule\end{tabular}
+\end{table}

@@ -1,0 +1,9 @@
+\begin{table}[H]\centering\small
+\caption{Window accuracy on the 42 public combustor recordings (1{,}932 windows of 50\,ms), overall and per true class.}\label{tab:real}
+\begin{tabular}{lrrrr}\toprule
+Model & Overall (\%) & Stable (\%) & Transient (\%) & Limit cyc. (\%) \\\midrule
+RF trained on recordings (grouped CV) & 94.1 & 93.5 & 91.5 & 97.4 \\
+RF trained on simulation (zero-shot) & 71.6 & 63.5 & 51.2 & 100.0 \\
+RMS 3-level rule & 74.9 & 100.0 & 24.7 & 100.0 \\
+\bottomrule\end{tabular}
+\end{table}

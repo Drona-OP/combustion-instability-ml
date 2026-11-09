@@ -1,0 +1,14 @@
+\begin{table}[H]\centering\small
+\caption{Results on the two held-out slow sweeps (30\,s each), same operating point as Table~\ref{tab:fast}.}\label{tab:slow}
+\resizebox{\textwidth}{!}{\begin{tabular}{lrrrrrrr}\toprule
+Detector & Acc. (\%) & Macro-F1 & Trans. caught (\%) & False alarms (\%) & Median warning & Worst run & Runs $\geq$40\,ms \\\midrule
+RMS danger alarm (1.2\,kPa) & 53.8 & 0.493 & 0.0 & 0.0 & $-$20\,ms & $-$20\,ms & 0/2 \\
+RMS 3-level rule & 64.8 & 0.649 & 24.9 & 1.5 & 420\,ms & 150\,ms & 2/2 \\
+SVM (5 features) & 69.5 & 0.719 & 39.0 & 1.8 & 905\,ms & 760\,ms & 2/2 \\
+Random Forest (5 features) & 70.2 & 0.724 & 40.9 & 3.4 & 630\,ms & 500\,ms & 2/2 \\
+RF + 100\,ms smoothing & 72.6 & 0.749 & 45.6 & 2.3 & 610\,ms & 500\,ms & 2/2 \\
+1D-CNN (raw $p'$) & 63.6 & 0.651 & 32.9 & 1.0 & 430\,ms & 150\,ms & 2/2 \\
+CNN-LSTM ($p'$) & 70.1 & 0.721 & 49.0 & 2.0 & 860\,ms & 680\,ms & 2/2 \\
+\textbf{CNN-LSTM ($p'+q'$)} & \textbf{87.5} & \textbf{0.884} & \textbf{82.5} & \textbf{10.5} & \textbf{4.91\,s} & \textbf{4.64\,s} & \textbf{2/2} \\
+\bottomrule\end{tabular}}
+\end{table}

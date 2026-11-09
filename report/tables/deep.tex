@@ -1,0 +1,9 @@
+\begin{table}[H]\centering\small
+\caption{Deep models: size, training cost and best validation accuracy (plain arg-max).}\label{tab:deep}
+\begin{tabular}{lrrrr}\toprule
+Model & Parameters & Training time & Best val. acc. (\%) & Time per decision (ms) \\\midrule
+1D-CNN (raw $p'$) & 47{,}587 & 4.6\,min & 80.2 & 0.44 \\
+CNN-LSTM ($p'$) & 80{,}611 & 8.1\,min & 84.1 & 1.77 \\
+CNN-LSTM ($p'+q'$) & 80{,}755 & 7.9\,min & 91.3 & 1.66 \\
+\bottomrule\end{tabular}
+\end{table}

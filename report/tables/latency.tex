@@ -1,0 +1,14 @@
+\begin{table}[H]\centering\small
+\caption{Per-class recall on the fast lean-outs and computation time per decision (one CPU core, feature extraction included).}\label{tab:latency}
+\begin{tabular}{lrrrr}\toprule
+Detector & Stable (\%) & Transition (\%) & Unstable (\%) & Time/decision (ms) \\\midrule
+RMS danger alarm (1.2\,kPa) & 100.0 & 0.0 & 97.5 & $<$0.1 \\
+RMS 3-level rule & 99.5 & 23.4 & 97.5 & $<$0.1 \\
+SVM (5 features) & 98.3 & 34.4 & 95.1 & 0.67 \\
+Random Forest (5 features) & 97.8 & 35.6 & 95.6 & 4.66 \\
+RF + 100\,ms smoothing & 99.2 & 38.8 & 93.9 & 4.66 \\
+1D-CNN (raw $p'$) & 99.1 & 34.7 & 90.4 & 0.44 \\
+CNN-LSTM ($p'$) & 100.0 & 42.1 & 64.8 & 1.77 \\
+CNN-LSTM ($p'+q'$) & 93.1 & 82.8 & 92.5 & 1.66 \\
+\bottomrule\end{tabular}
+\end{table}

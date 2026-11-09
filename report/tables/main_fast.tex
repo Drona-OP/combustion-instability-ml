@@ -1,0 +1,14 @@
+\begin{table}[H]\centering\small
+\caption{Results on the 12 unseen fast lean-out runs. Thresholds of the probabilistic detectors were tuned on the validation runs for at most 5\% false alarms.}\label{tab:fast}
+\resizebox{\textwidth}{!}{\begin{tabular}{lrrrrrrr}\toprule
+Detector & Acc. (\%) & Macro-F1 & Trans. caught (\%) & False alarms (\%) & Median warning & Worst run & Runs $\geq$40\,ms \\\midrule
+RMS danger alarm (1.2\,kPa) & 69.4 & 0.549 & 0.0 & 0.0 & $-$20\,ms & $-$20\,ms & 0/12 \\
+RMS 3-level rule & 76.2 & 0.692 & 23.4 & 0.5 & 210\,ms & 60\,ms & 12/12 \\
+SVM (5 features) & 78.1 & 0.735 & 34.4 & 1.7 & 255\,ms & 50\,ms & 12/12 \\
+Random Forest (5 features) & 78.5 & 0.741 & 35.6 & 2.2 & 275\,ms & 60\,ms & 12/12 \\
+RF + 100\,ms smoothing & 79.2 & 0.753 & 38.8 & 0.8 & 245\,ms & 30\,ms & 11/12 \\
+1D-CNN (raw $p'$) & 76.5 & 0.723 & 34.7 & 0.9 & 295\,ms & 50\,ms & 12/12 \\
+CNN-LSTM ($p'$) & 68.8 & 0.670 & 42.1 & 0.0 & 365\,ms & 90\,ms & 12/12 \\
+\textbf{CNN-LSTM ($p'+q'$)} & \textbf{89.8} & \textbf{0.892} & \textbf{82.8} & \textbf{6.9} & \textbf{1.15\,s} & \textbf{620\,ms} & \textbf{12/12} \\
+\bottomrule\end{tabular}}
+\end{table}
